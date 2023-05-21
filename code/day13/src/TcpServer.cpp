@@ -56,13 +56,13 @@ void TcpServer::NewConnection(Socket *sock){
 void TcpServer::DeleteConnection(Socket *sock) {
     int sockfd = sock->GetFd();
     //if (sockfd!=-1){
-        auto it = connections_.find(sockfd);
-        if (it != connections_.end()) {
-            TcpConnection *conn = connections_[sockfd];
-            connections_.erase(sockfd);
-            //delete conn; // 当不是正常关闭时，会引起sermentation fault
-            conn = nullptr;
-        }
+    auto it = connections_.find(sockfd);
+    if (it != connections_.end()) {
+        TcpConnection *conn = connections_[sockfd];
+        connections_.erase(sockfd);
+        //delete conn; // 当不是正常关闭时，会引起sermentation fault
+        conn = nullptr;
+    }
     //}
     
 }

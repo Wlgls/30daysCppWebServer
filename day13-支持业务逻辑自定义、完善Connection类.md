@@ -64,6 +64,7 @@ class TcpConnection{
         std::function<void(Socket *)> delete_connection_callback_;
         std::function<void(TcpConnection *)> on_connect_callback_;
         std::function<void(TcpConnection *)> on_message_callback_;
+}
 ```
 
 为了方便对`TcpConnection`的操作，当`TcpServer`接受到一个新连接时，设定`TcpConnection`的相应函数

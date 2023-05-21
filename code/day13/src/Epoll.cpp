@@ -29,9 +29,9 @@ std::vector<Channel *> Epoll::Poll(int timeout) {
     ErrorIf(nfds == -1, "epoll wait error");
     for (int i = 0; i < nfds; ++i) {
         Channel *ch = (Channel *)events_[i].data.ptr;
-            int events = events_[i].events;
-            if (events & EPOLLIN) {
-            ch->SetReadyEvents(Channel::READ_EVENT);
+        int events = events_[i].events;
+        if (events & EPOLLIN) {
+        ch->SetReadyEvents(Channel::READ_EVENT);
         }
         if (events & EPOLLOUT) {
             ch->SetReadyEvents(Channel::WRITE_EVENT);
