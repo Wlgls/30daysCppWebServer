@@ -1,5 +1,6 @@
 #include "TcpConnection.h"
 
+#include <memory>
 #include <unistd.h>
 #include "Buffer.h"
 #include "Channel.h"
@@ -12,20 +13,38 @@ TcpConnection::TcpConnection(EventLoop *loop, int connfd){
     socket_->SetFd(connfd);
     if(loop != nullptr){
         channel_ = std::make_unique<Channel>(connfd, loop);
+        //channel_ = new Channel(connfd, loop);
         channel_->EnableRead();
         channel_->EnableET();
+        //channel_->Tie(shared_from_this());
     }
     read_buf_ = std::make_unique<Buffer>();
     send_buf_ = std::make_unique<Buffer>();
 
-    state_ = ConnectionState::Connected;
+    //state_ = ConnectionState::Connected;
 }
 
 TcpConnection::~TcpConnection(){};
 
-void TcpConnection::set_connect_callback(std::function<void(TcpConnection *)> const &fn) { on_connect_ = std::move(fn); }
+
+void TcpConnection::ConnectionEstablished(){
+    state_ = ConnectionState::Connected;
+    //channel_->EnableRead();
+    //channel_->EnableET();
+    channel_->Tie(shared_from_this());
+    if (on_connect_){
+        on_connect_(shared_from_this());
+    }
+}
+
+
+
+void TcpConnection::set_connection_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn){
+    on_connect_ = std::move(fn);
+}
+
 void TcpConnection::set_close_callback(std::function<void(int)> const &fn) { on_close_ = std::move(fn); }
-void TcpConnection::set_message_callback(std::function<void(TcpConnection *)> const &fn) { 
+void TcpConnection::set_message_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn) { 
     on_message_ = std::move(fn);
     std::function<void()> cb = std::bind(&TcpConnection::OnMessage, this);
     channel_->set_read_callback(cb);
@@ -43,7 +62,7 @@ void TcpConnection::OnMessage(){
     Read();
     if (on_message_)
     {
-         on_message_(this);
+        on_message_(shared_from_this());
     }
 }
 
@@ -82,7 +101,6 @@ RC TcpConnection::Read()
 }
 
 RC TcpConnection::Write(){
-    printf("into write \n");
     if (state_ != ConnectionState::Connected)
     {
         perror("connection is not connected, cant write  12314");
@@ -111,11 +129,10 @@ RC TcpConnection::ReadNonBlocking(){
         }else if((bytes_read == -1) && (
             (errno == EAGAIN) || (errno == EWOULDBLOCK))){
             break;
-        }else if (bytes_read == 0){// EOF
+        }else if (bytes_read == 0){//
             OnClose();
             break;
         }else{
-            //state_ = ConnectionState::Disconected;
             OnClose();
             break;
         }

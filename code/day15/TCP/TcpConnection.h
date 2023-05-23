@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 class Buffer;
-class TcpConnection
+class TcpConnection : public  std::enable_shared_from_this<TcpConnection>
 {
 public:
     enum ConnectionState
@@ -26,9 +26,11 @@ public:
     TcpConnection(EventLoop *loop, int connfd);
     ~TcpConnection();
 
-    void set_connect_callback(std::function<void(TcpConnection *)> const &fn);
-    void set_close_callback(std::function<void(int)> const &fn);               // 关闭时的回调函数
-    void set_message_callback(std::function<void(TcpConnection *)> const &fn); // 接受到信息的回调函数
+    void ConnectionEstablished();
+
+    void set_connection_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn);
+    void set_close_callback(std::function<void(int)> const &fn);                                      // 关闭时的回调函数
+    void set_message_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn); // 接受到信息的回调函数
 
     void set_send_buf(const char *str); // 设定send buf
     Buffer *read_buf();
@@ -42,23 +44,26 @@ public:
 
     Socket *socket() const;
 
+    void OnConnect(); 
     void OnMessage(); // 当接收到信息时，进行回调
     void OnClose(); // 关闭时，进行回调
 
     ConnectionState state() const;
 
+
+
 private:
     std::unique_ptr<Socket> socket_;
+    //Channel * channel_;
     std::unique_ptr<Channel> channel_;
-
     ConnectionState state_;
 
     std::unique_ptr<Buffer> read_buf_;
     std::unique_ptr<Buffer> send_buf_;
 
     std::function<void(int)> on_close_;
-    std::function<void(TcpConnection *)> on_connect_;
-    std::function<void(TcpConnection *)> on_message_;
+    std::function<void(const std::shared_ptr<TcpConnection> &)> on_message_;
+    std::function<void(const std::shared_ptr<TcpConnection> &)> on_connect_;
 
     RC ReadNonBlocking();
     RC WriteNonBlocking();
