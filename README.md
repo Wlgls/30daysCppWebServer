@@ -32,13 +32,13 @@
 
 [day14-重构服务器、使用智能指针](https://github.com/Wlgls/30daysCppWebServer/blob/main/day14-重构服务器、使用智能指针.md)
 
+[day15-重构Connection、修改生命周期](https://github.com/Wlgls/30daysCppWebServer/blob/main/day15-重构Connection、修改生命周期.md)
+
 ### todo list
 
 定时器
 
 日志系统
-
-HTTP协议支持
 
 webbench测试
 
