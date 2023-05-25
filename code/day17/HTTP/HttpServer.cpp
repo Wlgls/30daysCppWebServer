@@ -31,11 +31,13 @@ HttpServer::~HttpServer(){
 };
 
 void HttpServer::onConnection(const TcpConnectionPtr &conn){
-    std::cout << "New connection fd:" << conn->socket()->fd() << std::endl;
+    std::cout << "New connection fd: " << conn->socket()->fd() << std::endl;
 }
 
 void HttpServer::onMessage(const TcpConnectionPtr &conn){
-    if(conn->state() == TcpConnection::ConnectionState::Connected){
+    if (conn->state() == TcpConnection::ConnectionState::Connected)
+    {
+        std::cout << "message from connection fd: " << conn->socket()->fd() << std::endl;
         HttpContext *context = conn->context();
         if (!context->ParaseRequest(conn->read_buf()->c_str(), conn->read_buf()->Size()))
         {

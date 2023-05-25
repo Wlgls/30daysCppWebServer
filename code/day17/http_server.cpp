@@ -15,7 +15,7 @@ void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
 
     {
         std::string url = request.url();
-        std::cout << url << std::endl;
+        std::cout << "request url: " << url << std::endl;
         if(url == "/"){
             response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
             response->SetBody(html);
@@ -24,6 +24,8 @@ void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
             response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
             response->SetBody("hello world\n");
             response->SetContentType("text/plain");
+        }else if(url == "/favicon.ico"){
+            response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
         }else{
             response->SetStatusCode(HttpResponse::HttpStatusCode::k404NotFound);
             response->SetStatusMessage("Not Found");
@@ -34,8 +36,18 @@ void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
     return;
 }
 
-int main(){
-    HttpServer *server = new HttpServer("127.0.0.1", 1234);
+int main(int argc, char *argv[]){
+    int port;
+    if (argc <= 1)
+    {
+        port = 1234;
+    }else if (argc == 2){
+        port = atoi(argv[1]);
+    }else{
+        printf("error");
+        exit(0);
+    }
+    HttpServer *server = new HttpServer("127.0.0.1", port);
     server->SetHttpCallback(HttpResponseCallback);
     server->start();
     return 0;

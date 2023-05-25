@@ -63,7 +63,7 @@ RC TcpServer::OnNewConnection(int fd){
 }
 
 RC TcpServer::OnClose(int fd){
-    printf("Remove connection fd:%d\n", fd);
+    printf("Remove connection fd:%d\n\n", fd);
     auto it = connectionsMap_.find(fd);
     assert(it != connectionsMap_.end());
     connectionsMap_.erase(fd);
