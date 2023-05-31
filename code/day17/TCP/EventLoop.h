@@ -28,9 +28,6 @@ public:
     void UpdateChannel(Channel *ch) const;
     void DeleteChannel(Channel *ch) const;
 
-    void DoToDoList();
-    void QueueOneFunc(std::function<void()> fn);
-
 private:
     std::unique_ptr<Epoller> poller_;
 };
