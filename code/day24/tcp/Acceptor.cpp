@@ -10,9 +10,9 @@
 #include <cstring>
 #include<fcntl.h>
 #include "Channel.h"
-#include "InetAddress.h"
 #include "common.h"
 #include "EventLoop.h"
+#include "Logging.h"
 #include <assert.h>
 #include <iostream>
 
@@ -36,7 +36,7 @@ RC Acceptor::Create(){
     assert(listenfd_ == -1);
     listenfd_ = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP);
     if(listenfd_ == -1){
-        perror("Failed to create socket");
+        LOG_ERROR << "Failed to create socket";
         return RC_SOCKET_ERROR;
     }
     return RC_SUCCESS;
@@ -49,7 +49,7 @@ RC Acceptor::Bind(const char *ip, const int port) const{
     addr.sin_addr.s_addr = inet_addr(ip);
     addr.sin_port = htons(port);
     if(::bind(listenfd_, (struct sockaddr *)&addr, sizeof(addr))==-1){
-        perror("faild to bind socket");
+        LOG_ERROR << "Failed to Bind";
         return RC_SOCKET_ERROR;
     }
     return RC_SUCCESS;
@@ -58,7 +58,7 @@ RC Acceptor::Bind(const char *ip, const int port) const{
 RC Acceptor::Listen() const{
     assert(listenfd_ != -1);
     if(::listen(listenfd_, SOMAXCONN) == -1){
-        perror("Failed to listen socket");
+        LOG_ERROR << "Failed to Listen";
         return RC_SOCKET_ERROR;
     }
     return RC_SUCCESS;
@@ -71,7 +71,7 @@ RC Acceptor::Accept(int &clnt_fd) const{
     clnt_fd = ::accept4(listenfd_, (struct sockaddr *)&client, &client_addrlength, SOCK_NONBLOCK | SOCK_CLOEXEC);
     if (clnt_fd == -1)
     {
-        perror("Failed to accept socket");
+        LOG_ERROR << "Failed to Accept";
         return RC_SOCKET_ERROR;
     }
     return RC_SUCCESS;
@@ -83,7 +83,7 @@ RC Acceptor::AcceptConnection() const{
 
     int clnt_fd = -1;
     if (Accept(clnt_fd) != RC_SUCCESS){
-        perror("Acceptor accept new connection failed ");
+        LOG_ERROR << "Acceptor::AcceptConnection::Failed to accept new connection";
         return RC_ACCEPTOR_ERROR;
     }
     //fcntl(clnt_fd, F_SETFL, fcntl(clnt_fd, F_GETFL) | O_NONBLOCK); // 新接受到的连接设置为非阻塞式
@@ -92,8 +92,9 @@ RC Acceptor::AcceptConnection() const{
     socklen_t peer_addrlength = sizeof(peeraddr);
     getpeername(clnt_fd, (struct sockaddr *)&peeraddr, &peer_addrlength);
 
-    std::cout << "TcpServer::OnNewConnection :"
-              << "from: " << inet_ntoa(peeraddr.sin_addr) << ":" << ntohs(peeraddr.sin_port) << " " << "fd: " << clnt_fd << std::endl;
+    LOG_INFO << "TcpServer::OnNewConnection : new connection "
+             << "[fd#" << clnt_fd << "]"
+             << " from " << inet_ntoa(peeraddr.sin_addr) << ":" << ntohs(peeraddr.sin_port);
 
     if(new_connection_callback_){
         new_connection_callback_(clnt_fd);

@@ -59,8 +59,9 @@ void Logger::Impl::FormattedTime(){
     int microseconds = static_cast<int>(now.microseconds() % kMicrosecond2Second);
 
     // 变更日志记录的时间，如果不在同一秒，则更新时间。
-    // 方便在同一秒内输出多个日志信息
-    if (t_lastsecond != seconds) {
+
+    if (t_lastsecond != seconds)
+    {
         struct tm tm_time;
         localtime_r(&seconds, &tm_time);
         snprintf(t_time, sizeof(t_time), "%4d%02d%02d %02d:%02d:%02d.",
@@ -69,7 +70,7 @@ void Logger::Impl::FormattedTime(){
         t_lastsecond = seconds;
     }
 
-    Fmt us(".%06dZ", microseconds);
+    Fmt us(".%06dZ  ", microseconds);
     stream_ << Template(t_time, 17) << Template(us.data(), 9);
 }
 
