@@ -9,7 +9,6 @@ class EventLoop;
 class TcpConnection;
 class Acceptor;
 class ThreadPool;
-class InetAddress;
 class TcpServer
 {
     public:

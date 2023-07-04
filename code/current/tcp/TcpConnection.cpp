@@ -6,6 +6,7 @@
 #include "Channel.h"
 #include "common.h"
 #include <assert.h>
+#include "Logging.h"
 #include "EventLoop.h"
 #include "HttpContext.h"
 
@@ -94,7 +95,7 @@ RC TcpConnection::Send(const char *msg){
 RC TcpConnection::Read()
 {
     if(state_ != ConnectionState::Connected){
-        perror("connection is not connected, cant read");
+        LOG_ERROR << "TcpConnection::Read connection is not connected";
         return RC_CONNECTION_ERROR;
     }
     assert(state_ == ConnectionState::Connected && "connection state is disconnected!");
@@ -107,7 +108,7 @@ RC TcpConnection::Read()
 RC TcpConnection::Write(){
     if (state_ != ConnectionState::Connected)
     {
-        perror("connection is not connected, cant write");
+        LOG_ERROR << "TcpConnection::Write connection is not connected";
         return RC_CONNECTION_ERROR;
     }
 
@@ -127,7 +128,6 @@ RC TcpConnection::ReadNonBlocking(){
         if(bytes_read > 0){
             read_buf_->Append(buf, bytes_read);
         }else if(bytes_read == -1 && errno == EINTR){
-            printf("continue reading\n");
             continue;
         }else if((bytes_read == -1) && (
             (errno == EAGAIN) || (errno == EWOULDBLOCK))){
@@ -152,7 +152,6 @@ RC TcpConnection::WriteNonBlocking(){
     while(data_left > 0){
         ssize_t bytes_write = write(connfd_, buf + data_size - data_left, data_left);
         if(bytes_write == -1 && errno == EINTR){
-            printf("continue writing\n");
             continue;
         }
         if(bytes_write == -1 && errno == EAGAIN){

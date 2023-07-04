@@ -3,6 +3,7 @@
 
 #include "Channel.h"
 #include "common.h"
+#include "Logging.h"
 #include <stdio.h>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -44,7 +45,7 @@ RC Epoller::UpdateChannel(Channel *ch) const{
     if (!ch->IsInEpoll())
     {
         if(epoll_ctl(fd_, EPOLL_CTL_ADD, sockfd, &ev) == -1){
-            perror("epoll add error");
+            LOG_ERROR << "Epoller::UpdateChannel epoll_ctl_add failed";
             return RC_POLLER_ERROR;
         }
         ch->SetInEpoll(true);
@@ -52,7 +53,7 @@ RC Epoller::UpdateChannel(Channel *ch) const{
     else
     {
         if(epoll_ctl(fd_, EPOLL_CTL_MOD, sockfd, &ev) == -1){
-            perror("epoll modify error");
+            LOG_ERROR << "Epoller::UpdateChannel epoll_ctl_mod failed";
             return RC_POLLER_ERROR;
         }
     }
@@ -62,7 +63,7 @@ RC Epoller::UpdateChannel(Channel *ch) const{
 RC Epoller::DeleteChannel(Channel *ch) const{
     int sockfd = ch->fd();
     if (epoll_ctl(fd_, EPOLL_CTL_DEL, sockfd, nullptr) == -1){
-        perror("epoll delete error");
+        LOG_ERROR << "Epoller::UpdateChannel epoll_ctl_del failed";
         return RC_POLLER_ERROR;
     }
     ch->SetInEpoll(false);

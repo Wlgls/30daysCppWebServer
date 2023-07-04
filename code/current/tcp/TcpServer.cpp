@@ -38,8 +38,11 @@ void TcpServer::Start(){
 RC TcpServer::OnNewConnection(int fd){
     assert(fd != -1);
     uint64_t random = fd % sub_reactors_.size();
-    LOG_INFO << "new connection: " << fd;
+    // LOG_INFO << "new connection: " << fd;
     // printf("%d\n", sub_reactors_[random]->tid());
+    LOG_INFO << "TcpServer::OnNewConnection - set connection "
+             << "[fd#" << fd << "] - "
+             << "id : " << next_conn_id_;
     std::shared_ptr<TcpConnection> conn = std::make_shared<TcpConnection>(sub_reactors_[random].get(), fd, next_conn_id_);
     std::function<void(const std::shared_ptr<TcpConnection> &)> cb = std::bind(&TcpServer::OnClose, this, std::placeholders::_1);
     conn->set_connection_callback(on_connect_);
@@ -56,7 +59,10 @@ RC TcpServer::OnNewConnection(int fd){
 }
 
 RC TcpServer::OnClose(const std::shared_ptr<TcpConnection> & conn){
-    printf("Remove connection id:%d\n\n", conn->id());
+
+    LOG_INFO << "TcpServer::OnClose - remove connection "
+             << "[fd#" << conn->fd() << "]";
+    // printf("Remove connection id:%d\n\n", conn->id());
     auto it = connectionsMap_.find(conn->fd());
     assert(it != connectionsMap_.end());
     connectionsMap_.erase(conn->fd());

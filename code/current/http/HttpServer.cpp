@@ -37,7 +37,6 @@ HttpServer::~HttpServer(){
 };
 
 void HttpServer::onConnection(const TcpConnectionPtr &conn){
-    std::cout << "New connection id: " << conn->id() << std::endl;
     if(auto_close_conn_){
         loop_->RunAfter(AUTOCLOSETIMEOUT, std::move(std::bind(&HttpServer::CloseConn, this, std::weak_ptr<TcpConnection>(conn))));
     }
@@ -49,7 +48,7 @@ void HttpServer::onMessage(const TcpConnectionPtr &conn){
     {
         if(auto_close_conn_)
             conn->UpdateTimeStamp(TimeStamp::Now());
-        std::cout << "message from connection id: " << conn->id() << std::endl;
+        LOG_INFO << "HttpServer::onMessagemessage from connection id: " << conn->id();
         HttpContext *context = conn->context();
         if (!context->ParaseRequest(conn->read_buf()->c_str(), conn->read_buf()->Size()))
         {
