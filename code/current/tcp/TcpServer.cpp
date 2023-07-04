@@ -7,7 +7,7 @@
 // #include <memory>
 #include <assert.h>
 #include <iostream>
-
+#include "Logging.h"
 
 TcpServer::TcpServer(EventLoop *loop, const char * ip, const int port):main_reactor_(loop), next_conn_id_(1){
     
@@ -38,7 +38,8 @@ void TcpServer::Start(){
 RC TcpServer::OnNewConnection(int fd){
     assert(fd != -1);
     uint64_t random = fd % sub_reactors_.size();
-    printf("%d\n", sub_reactors_[random]->tid());
+    LOG_INFO << "new connection: " << fd;
+    // printf("%d\n", sub_reactors_[random]->tid());
     std::shared_ptr<TcpConnection> conn = std::make_shared<TcpConnection>(sub_reactors_[random].get(), fd, next_conn_id_);
     std::function<void(const std::shared_ptr<TcpConnection> &)> cb = std::bind(&TcpServer::OnClose, this, std::placeholders::_1);
     conn->set_connection_callback(on_connect_);

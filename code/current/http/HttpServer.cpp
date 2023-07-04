@@ -9,6 +9,8 @@
 #include "EventLoop.h"
 #include <functional>
 #include <iostream>
+
+#include "Logging.h"
  
 void HttpServer::HttpDefaultCallBack(const HttpRequest& request, HttpResponse *resp){
     resp->SetStatusCode(HttpResponse::HttpStatusCode::k404NotFound);
@@ -26,8 +28,9 @@ HttpServer::HttpServer(EventLoop * loop, const char *ip, const int port, bool au
     );
     SetHttpCallback(std::bind(&HttpServer::HttpDefaultCallBack, this, std::placeholders::_1, std::placeholders::_2));
 
-    //loop_->RunEvery(3.0, std::bind(&HttpServer::TestTimer_IntervalEvery3Seconds, this));
-    //loop_->RunEvery(5.0, std::bind(&HttpServer::TestTimer_IntervalEvery5Seconds, this));
+    LOG_INFO << "HttpServer Listening on " << ip << ":" << port;
+    // loop_->RunEvery(3.0, std::bind(&HttpServer::TestTimer_IntervalEvery3Seconds, this));
+    // loop_->RunEvery(5.0, std::bind(&HttpServer::TestTimer_IntervalEvery5Seconds, this));
 };
 
 HttpServer::~HttpServer(){
