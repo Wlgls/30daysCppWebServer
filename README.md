@@ -44,8 +44,6 @@
 
 [day18-去除Socket类、简化代码](https://github.com/Wlgls/30daysCppWebServer/blob/main/day18-去除Socket类、简化代码.md)
 
-[day19-创建Mutex类、保证线程同步](https://github.com/Wlgls/30daysCppWebServer/blob/main/day19-创建Mutex类、保证线程同步.md)
-
 [day20-使用CMake工程化](https://github.com/Wlgls/30daysCppWebServer/blob/main/day20-使用CMake工程化.md)
 
 [day21-定时器的创建使用](https://github.com/Wlgls/30daysCppWebServer/blob/main/day21-定时器的创建使用.md)

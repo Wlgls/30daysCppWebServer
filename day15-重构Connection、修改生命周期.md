@@ -104,11 +104,69 @@ RC TcpServer::OnNewConnection(int fd){
 
 ```
 
-通过上述操作，保证了`TcpConnection`的生命周期与`HandleEvent`相同。具体上讲
+通过上述操作，保证了`TcpConnection`的生命周期与`HandleEvent`相同。但是当客户端数量过多时，总会出先问题，可能是因为上述解决方法并不鲁棒。
+因此在释放时在进行释放时，在`EventLoop`处额外增加`TcpConnection`的引用计数。从而保证鲁棒。
+
+具体的，我们使用`to_do_list_`保存不同客户端的销毁程序。并在所有的`HandleEvent`结束之后进行。为了保证线程同步，我们在向`to_do_list_`添加函数和运行他时进行加锁。
+
+当我们运行和添加函数时，我们使用`std::mutex`分别进行加锁从而保证线程安全。
+```c++
+void EventLoop::QueueOneFunc(std::function<void()> cb){
+    {
+        // 加锁，保证线程同步
+        std::unique_lock<std::mutex> lock(mutex_);
+        to_do_list_.emplace_back(std::move(cb));
+    }
+}
+
+void EventLoop::DoToDoList(){
+    std::vector < std::function<void()>> functors;
+    {
+        // 加锁 保证线程同步
+        std::unique_lock<std::mutex> lock(mutex_); 
+        functors.swap(to_do_list_);
+    }
+    for(const auto& func: functors){
+        func();
+    }
+}
+```
+
+而`TcpServer`在关闭连接时，就会向`EventLoop`传入`TcpConnection`的毁灭函数以提升`TcpConnection`的生命周期，并保证`EventLoop`在运行所有`HandleEvent`之后运行`to_do_list_`以进行析构。
+
+```c++
+//tcpserver.cpp
+RC TcpServer::OnClose(const std::shared_ptr<TcpConnection> & conn){
+    auto it = connectionsMap_.find(conn->fd());
+    assert(it != connectionsMap_.end());
+    connectionsMap_.erase(conn->fd());
+
+    EventLoop *loop = conn->loop();
+    loop->QueueOneFunc(std::bind(&TcpConnection::ConnectionDestructor, conn));
+    return RC_SUCCESS;
+}
+```
+
+```c++
+// EventLoop.cpp
+void EventLoop::Loop(){
+    while(true){
+        for (Channel *active_ch : poller_->Poll()){
+            active_ch->HandleEvent();
+        }
+        DoToDoList();
+    }
+}
+```
 
 在连接到来时，创建`TcpConnection`,并用`shared_ptr`管理，此时引用计数为1.
 
 而当`HandleEvent`时，将`tie_`提升，得到一个`shared_ptr`，引用计数为2。
 
-当关闭时，`TcpServer`中`erase`后`TcpConnection`引用计数变为了1。而`HandleEvent`之后完之后引用计数变为了0。自动销毁。
+当关闭时，`TcpServer`中`erase`后`TcpConnection`引用计数变为了1。之后将当前连接的销毁程序加入到`DoToDoList`使引用计数变为2, 而`HandleEvent`之后完之后引用计数变为了1。当`DoToDoList`执行完成之后，引用计数变成了0。便自动销毁。
+
+当前的版本对`TcpConnection`的生命周期管理已经差不多是安全的了。但是仍然存在许多问题，包括性能太差，线程安全等等。这需要后续进一步的修改。之后暂时先实现定时器和日志库。这两个组件也更方面我们去debug。
+
+
+
 

@@ -23,8 +23,8 @@ class TcpServer
     void set_connection_callback(std::function < void(const std::shared_ptr<TcpConnection> &)> const &fn);
     void set_message_callback(std::function < void(const std::shared_ptr<TcpConnection> &)> const &fn);
 
-    RC OnClose(int fd);
     RC OnNewConnection(int fd);
+    RC OnClose(const std::shared_ptr<TcpConnection> &);
 
     private:
         std::unique_ptr<EventLoop> main_reactor_;

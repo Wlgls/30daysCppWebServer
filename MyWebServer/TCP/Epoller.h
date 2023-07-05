@@ -12,8 +12,8 @@ public:
     Epoller();
     ~Epoller();
 
-    RC UpdateChannel(Channel *ch) const;
-    RC DeleteChannel(Channel *ch) const;
+    void UpdateChannel(Channel *ch) const;
+    void DeleteChannel(Channel *ch) const;
 
     std::vector<Channel *> Poll(long timeout = -1) const;
 

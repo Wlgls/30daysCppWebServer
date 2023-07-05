@@ -1,5 +1,4 @@
 #include "TcpServer.h"
-#include "Socket.h"
 #include "TcpConnection.h"
 #include "EventLoop.h"
 #include "Acceptor.h"
@@ -50,14 +49,15 @@ void TcpServer::Start(){
     main_reactor_->Loop();
 }
 
-RC TcpServer::HandleNewConnection(int fd){
+void TcpServer::HandleNewConnection(int fd){
     assert(fd != -1);
     uint64_t random = fd % sub_reactors_.size();
 
     //TcpConnection *conn = new TcpConnection(sub_reactors_[random].get(), fd);
     std::unique_ptr<TcpConnection> conn = std::make_unique<TcpConnection>(sub_reactors_[random].get(), fd);
     std::function<void(int)> cb = std::bind(&TcpServer::HandleClose, this, std::placeholders::_1);
-
+    conn->set_connection_callback(on_connect_);
+    conn->ConnectionEstablished();
     conn->set_close_callback(cb);
     conn->set_message_callback(on_message_);
     //connectionsMap_[fd] = conn;
@@ -67,18 +67,16 @@ RC TcpServer::HandleNewConnection(int fd){
         //on_connect_(connectionsMap_[fd]);
         on_connect_(connectionsMap_[fd].get());
     }
-
-    return RC_SUCCESS;
 }
 
-RC TcpServer::HandleClose(int fd){
+void TcpServer::HandleClose(int fd){
     auto it =  connectionsMap_.find(fd);
     assert(it != connectionsMap_.end());
     //TcpConnection * conn = connectionsMap_[fd];
     connectionsMap_.erase(fd);
+    loop->QueueOneFunc(std::bind(&TcpConnection::ConnectionDestructor, conn));
     //conn = nullptr;
     // delete conn;
-    return RC_SUCCESS;
 }
 
 void TcpServer::set_connection_callback(std::function<void(TcpConnection *)> const &fn) { on_connect_ = std::move(fn); };

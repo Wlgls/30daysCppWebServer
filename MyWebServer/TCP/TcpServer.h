@@ -23,8 +23,8 @@ class TcpServer
     void set_connection_callback(std::function < void(TcpConnection *)> const &fn);
     void set_message_callback(std::function < void(TcpConnection *)> const &fn);
 
-    RC HandleClose(int fd);
-    RC HandleNewConnection(int fd);
+    void HandleClose(int fd);
+    void HandleNewConnection(int fd);
 
     private:
         std::unique_ptr<EventLoop> main_reactor_;

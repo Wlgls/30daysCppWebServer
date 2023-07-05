@@ -7,11 +7,13 @@
 #include "Socket.h"
 #include "common.h"
 #include <assert.h>
-
+#include "EventLoop.h"
 TcpConnection::TcpConnection(EventLoop *loop, int connfd){
     socket_ = std::make_unique<Socket>();
     socket_->SetFd(connfd);
-    if(loop != nullptr){
+    loop_ = loop;
+    if (loop != nullptr)
+    {
         channel_ = std::make_unique<Channel>(connfd, loop);
         //channel_ = new Channel(connfd, loop);
         channel_->EnableRead();
@@ -27,6 +29,7 @@ TcpConnection::TcpConnection(EventLoop *loop, int connfd){
 TcpConnection::~TcpConnection(){};
 
 
+
 void TcpConnection::ConnectionEstablished(){
     state_ = ConnectionState::Connected;
     //channel_->EnableRead();
@@ -37,13 +40,16 @@ void TcpConnection::ConnectionEstablished(){
     }
 }
 
-
+void TcpConnection::ConnectionDestructor(){
+    loop_->DeleteChannel(channel_.get());
+    ::close(socket_->fd());
+}
 
 void TcpConnection::set_connection_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn){
     on_connect_ = std::move(fn);
 }
 
-void TcpConnection::set_close_callback(std::function<void(int)> const &fn) { on_close_ = std::move(fn); }
+void TcpConnection::set_close_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn) { on_close_ = std::move(fn); }
 void TcpConnection::set_message_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn) { 
     on_message_ = std::move(fn);
     std::function<void()> cb = std::bind(&TcpConnection::OnMessage, this);
@@ -54,7 +60,7 @@ void TcpConnection::set_message_callback(std::function<void(const std::shared_pt
 void TcpConnection::OnClose() {
     state_ = ConnectionState::Disconected;
     if(on_close_){
-        on_close_(socket_->fd());
+        on_close_(shared_from_this());
     }
 }
 
@@ -164,3 +170,5 @@ RC TcpConnection::WriteNonBlocking(){
     }
     return RC_SUCCESS;
 }
+
+EventLoop *TcpConnection::loop() const { return loop_; }

@@ -53,7 +53,7 @@ RC TcpServer::OnNewConnection(int fd){
     uint64_t random = fd % sub_reactors_.size();
 
     std::shared_ptr<TcpConnection> conn = std::make_shared<TcpConnection>(sub_reactors_[random].get(), fd);
-    std::function<void(int)> cb = std::bind(&TcpServer::OnClose, this, std::placeholders::_1);
+    std::function<void(const std::shared_ptr<TcpConnection> &)> cb = std::bind(&TcpServer::OnClose, this, std::placeholders::_1);
     conn->set_connection_callback(on_connect_);
     conn->ConnectionEstablished();
     conn->set_close_callback(cb);
@@ -62,13 +62,16 @@ RC TcpServer::OnNewConnection(int fd){
     return RC_SUCCESS;
 }
 
-RC TcpServer::OnClose(int fd){
-    printf("Remove connection fd:%d\n", fd);
-    auto it = connectionsMap_.find(fd);
+RC TcpServer::OnClose(const std::shared_ptr<TcpConnection> & conn){
+
+    // printf("Remove connection id:%d\n\n", conn->id());
+    auto it = connectionsMap_.find(conn->socket()->fd());
     assert(it != connectionsMap_.end());
-    connectionsMap_.erase(fd);
+    connectionsMap_.erase(conn->socket()->fd());
+
+    EventLoop *loop = conn->loop();
+    loop->QueueOneFunc(std::bind(&TcpConnection::ConnectionDestructor, conn));
     return RC_SUCCESS;
 }
-
 void TcpServer::set_connection_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn) { on_connect_ = std::move(fn); };
 void TcpServer::set_message_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn) { on_message_ = std::move(fn); };

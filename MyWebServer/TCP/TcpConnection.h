@@ -26,6 +26,9 @@ public:
     TcpConnection(EventLoop *loop, int connfd);
     ~TcpConnection();
 
+    void ConnectionEstablished();
+    void ConnectionDestructor();
+
     void set_connect_callback(std::function<void(TcpConnection *)> const &fn);
     void set_close_callback(std::function<void(int)> const &fn);               // 关闭时的回调函数
     void set_message_callback(std::function<void(TcpConnection *)> const &fn); // 接受到信息的回调函数
@@ -34,11 +37,11 @@ public:
     Buffer *read_buf();
     Buffer *send_buf();
 
-    RC Read(); // 读操作
-    RC Write(); // 写操作
-    RC Send(std::string &msg); // 输出信息
-    RC Send(const char *msg, int len); // 输出信息
-    RC Send(const char *msg);
+    void Read(); // 读操作
+    void Write(); // 写操作
+    void Send(std::string &msg); // 输出信息
+    void Send(const char *msg, int len); // 输出信息
+    void Send(const char *msg);
 
     Socket *socket() const;
 
@@ -60,6 +63,6 @@ private:
     std::function<void(TcpConnection *)> on_connect_;
     std::function<void(TcpConnection *)> on_message_;
 
-    RC ReadNonBlocking();
-    RC WriteNonBlocking();
+    void ReadNonBlocking();
+    void WriteNonBlocking();
 };

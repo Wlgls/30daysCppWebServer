@@ -23,6 +23,21 @@ TcpConnection::TcpConnection(EventLoop *loop, int connfd){
 
 TcpConnection::~TcpConnection(){};
 
+void TcpConnection::ConnectionEstablished(){
+    state_ = ConnectionState::Connected;
+    channel_->Tie(shared_from_this());
+    if (on_connect_){
+        on_connect_(shared_from_this());
+    }
+}
+
+void TcpConnection::ConnectionDestructor(){
+    loop_->DeleteChannel(channel_.get());
+    ::close(connfd_);
+}
+
+
+
 void TcpConnection::set_connect_callback(std::function<void(TcpConnection *)> const &fn) { on_connect_ = std::move(fn); }
 void TcpConnection::set_close_callback(std::function<void(int)> const &fn) { on_close_ = std::move(fn); }
 void TcpConnection::set_message_callback(std::function<void(TcpConnection *)> const &fn) { 
@@ -55,49 +70,38 @@ void TcpConnection::set_send_buf(const char *str) { send_buf_->set_buf(str); }
 Buffer *TcpConnection::read_buf(){ return read_buf_.get(); }
 Buffer *TcpConnection::send_buf() { return send_buf_.get(); }
 
-RC TcpConnection::Send(std::string &msg){
+void TcpConnection::Send(std::string &msg){
     set_send_buf(msg.c_str());
     Write();
     return RC_SUCCESS;
 }
 
-RC TcpConnection::Send(const char *msg){
+void TcpConnection::Send(const char *msg){
     set_send_buf(msg);
     Write();
-    return RC_SUCCESS;
 }
 
 
-RC TcpConnection::Read()
+void TcpConnection::Read()
 {
     if(state_ != ConnectionState::Connected){
         perror("connection is not connected, cant read");
-        return RC_CONNECTION_ERROR;
     }
     assert(state_ == ConnectionState::Connected && "connection state is disconnected!");
-    read_buf_->Clear();
-    RC rc = RC_UNDEFINED;
-    rc = ReadNonBlocking();
-    return rc;
+    read_buf_->Clear(); // 
+    ReadNonBlocking();
 }
 
-RC TcpConnection::Write(){
-    printf("into write \n");
-    if (state_ != ConnectionState::Connected)
-    {
+void TcpConnection::Write(){
+    if (state_ != ConnectionState::Connected){
         perror("connection is not connected, cant write  12314");
-        return RC_CONNECTION_ERROR;
     }
-
-    RC rc = RC_UNDEFINED;
-    rc = WriteNonBlocking();
+    WriteNonBlocking();
     send_buf_->Clear();
-
-    return rc;
 }
 
 
-RC TcpConnection::ReadNonBlocking(){
+void TcpConnection::ReadNonBlocking(){
     int sockfd = socket_->fd();
     char buf[1024];
     while(true){
@@ -106,7 +110,7 @@ RC TcpConnection::ReadNonBlocking(){
         if(bytes_read > 0){
             read_buf_->Append(buf, bytes_read);
         }else if(bytes_read == -1 && errno == EINTR){
-            printf("continue reading\n");
+            std::cout << "continue reading";
             continue;
         }else if((bytes_read == -1) && (
             (errno == EAGAIN) || (errno == EWOULDBLOCK))){
@@ -120,10 +124,9 @@ RC TcpConnection::ReadNonBlocking(){
             break;
         }
     }
-    return RC_SUCCESS;
 }
 
-RC TcpConnection::WriteNonBlocking(){
+void TcpConnection::WriteNonBlocking(){
     int sockfd = socket_->fd();
     char buf[send_buf_->Size()];
     memcpy(buf, send_buf_->c_str(), send_buf_->Size());
@@ -133,7 +136,7 @@ RC TcpConnection::WriteNonBlocking(){
     while(data_left > 0){
         ssize_t bytes_write = write(sockfd, buf + data_size - data_left, data_left);
         if(bytes_write == -1 && errno == EINTR){
-            printf("continue writing\n");
+            std::cout << "continue writing";
             continue;
         }
         if(bytes_write == -1 && errno == EAGAIN){
@@ -145,5 +148,4 @@ RC TcpConnection::WriteNonBlocking(){
         }
         data_left -= bytes_write;
     }
-    return RC_SUCCESS;
 }
