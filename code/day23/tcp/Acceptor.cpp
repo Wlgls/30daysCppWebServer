@@ -10,7 +10,6 @@
 #include <cstring>
 #include<fcntl.h>
 #include "Channel.h"
-#include "InetAddress.h"
 #include "common.h"
 #include "EventLoop.h"
 #include <assert.h>

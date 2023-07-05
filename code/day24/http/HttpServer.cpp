@@ -37,10 +37,10 @@ HttpServer::~HttpServer(){
 };
 
 void HttpServer::onConnection(const TcpConnectionPtr &conn){
+    std::cout << "New connection id: " << conn->id() << std::endl;
     if(auto_close_conn_){
         loop_->RunAfter(AUTOCLOSETIMEOUT, std::move(std::bind(&HttpServer::CloseConn, this, std::weak_ptr<TcpConnection>(conn))));
     }
-    
 }
 
 void HttpServer::onMessage(const TcpConnectionPtr &conn){

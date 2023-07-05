@@ -16,7 +16,7 @@ void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
 
     {
         std::string url = request.url();
-        std::cout << "request url: " << url << std::endl;
+        //std::cout << "request url: " << url << std::endl;
         if(url == "/"){
             response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
             response->SetBody(html);
