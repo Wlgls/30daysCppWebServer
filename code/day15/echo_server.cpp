@@ -39,6 +39,7 @@ void EchoServer::onMessage(const std::shared_ptr<TcpConnection> & conn){
     if(conn->state() == TcpConnection::ConnectionState::Connected){
         std::cout << "Message from clent " << conn->read_buf()->c_str() << std::endl;
         conn->Send(conn->read_buf()->c_str());
+        conn->OnClose();
     }
 }
 
