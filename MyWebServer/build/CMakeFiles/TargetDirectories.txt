@@ -1,4 +1,0 @@
-/home/asher/Desktop/30daysCppWebServer/MyWebServer/build/CMakeFiles/WebServer.dir
-/home/asher/Desktop/30daysCppWebServer/MyWebServer/build/CMakeFiles/EchoServer.dir
-/home/asher/Desktop/30daysCppWebServer/MyWebServer/build/CMakeFiles/edit_cache.dir
-/home/asher/Desktop/30daysCppWebServer/MyWebServer/build/CMakeFiles/rebuild_cache.dir

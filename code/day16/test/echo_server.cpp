@@ -1,9 +1,9 @@
-#include "tcp/Acceptor.h"
-#include "tcp/EventLoop.h"
-#include "tcp/TcpServer.h"
-#include "tcp/Buffer.h"
-#include "tcp/ThreadPool.h"
-#include "tcp/TcpConnection.h"
+#include "Acceptor.h"
+#include "EventLoop.h"
+#include "TcpConnection.h"
+#include "TcpServer.h"
+#include "Buffer.h"
+#include "ThreadPool.h"
 #include <iostream>
 #include <functional>
 #include <arpa/inet.h>
@@ -48,7 +48,6 @@ void EchoServer::onConnection(const std::shared_ptr<TcpConnection> & conn){
 };
 
 void EchoServer::onMessage(const std::shared_ptr<TcpConnection> & conn){
-    // std::cout << CurrentThread::tid() << " EchoServer::onMessage" << std::endl;
     if (conn->state() == TcpConnection::ConnectionState::Connected)
     {
         std::cout << std::this_thread::get_id() << "Message from clent " << conn->read_buf()->c_str() << std::endl;
