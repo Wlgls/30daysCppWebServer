@@ -51,8 +51,6 @@ public:
     // 当TcpConnection发起关闭请求时，进行回调，释放相应的socket.
     void HandleClose(); 
 
-    // 由服务器发起的关闭连接，主要由于当服务器接收到非Http请求等，会主动的将当前连接的socket终止输出，但是仍然可以接收数据。
-    void Shutdown();
 
     ConnectionState state() const;
     EventLoop *loop() const;

@@ -43,5 +43,5 @@ private:
     std::unique_ptr<Channel> wakeup_channel_;
 
     bool calling_functors_;
-    std::thread::id tid_;
+    pid_t tid_;
 };

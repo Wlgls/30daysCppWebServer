@@ -2,7 +2,7 @@
 
 #include "Channel.h"
 #include "Epoller.h"
-
+#include "CurrentThread.h"
 #include <memory>
 #include <vector>
 #include <stdio.h>
@@ -29,7 +29,7 @@ EventLoop::~EventLoop() {
 
 void EventLoop::Loop(){
     // 将Loop函数分配给了不同的线程，获取执行该函数的线程
-    tid_ = std::this_thread::get_id();
+    tid_ = CurrentThread::tid();
     while (true)
     {
         for (Channel *active_ch : poller_->Poll()){
@@ -43,7 +43,7 @@ void EventLoop::UpdateChannel(Channel *ch) { poller_->UpdateChannel(ch); }
 void EventLoop::DeleteChannel(Channel *ch) { poller_->DeleteChannel(ch); }
 
 bool EventLoop::IsInLoopThread(){
-    return std::this_thread::get_id() == tid_;
+    return CurrentThread::tid() == tid_;
 }
 
 void EventLoop::RunOneFunc(std::function<void()> cb){

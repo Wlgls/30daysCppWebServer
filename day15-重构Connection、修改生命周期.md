@@ -174,7 +174,7 @@ void EventLoop::QueueOneFunc(std::function<void()> cb){
 
 在这里实现了第二种操作，为了实现这种操作，必须要获得当前运行线程的`id`，并判断其与对应`reactor_`的线程`id`是否相同。
 
-我们使用`std::this_thread::get_id()`来获取当前运行线程的线程id.
+我们使用定义了`CurrenntThread`来获取当前运行线程的线程id.
 
 由于`EventLoop`的创建是在主线程中，只是将`EventLoop::Loop`分配给了不同的子线程，因此在`Loop`函数中调用`get_id()`并将其保存在`EventLoop`的成员变量中。
 
@@ -182,7 +182,7 @@ void EventLoop::QueueOneFunc(std::function<void()> cb){
 // EventLoop.cpp
 void EventLoop::Loop(){
     // 将Loop函数分配给了不同的线程，获取执行该函数的线程
-    tid_ = std::this_thread::get_id();
+    tid_ = CurrentThread::tid();
     while (true)
     {
         for (Channel *active_ch : poller_->Poll()){
@@ -196,7 +196,7 @@ void EventLoop::Loop(){
 当我们判断当前运行的线程是否是`EventLoop`对应的线程，只需要比较`tid_`即可。
 ```c++
 bool EventLoop::IsInLoopThread(){
-    return std::this_thread::get_id() == tid_;
+    return CurrentThread::tid() == tid_;
 }
 ```
 
@@ -207,12 +207,12 @@ bool EventLoop::IsInLoopThread(){
 ```c++
 // TcpServer.cpp
 inline void TcpServer::HandleClose(const std::shared_ptr<TcpConnection> & conn){
-    std::cout <<  std::this_thread::get_id() << " TcpServer::HandleClose"  << std::endl;
+    std::cout <<  CurrentThread::tid() << " TcpServer::HandleClose"  << std::endl;
     main_reactor_->RunOneFunc(std::bind(&TcpServer::HandleCloseInLoop, this, conn));
 }
 
 inline void TcpServer::HandleCloseInLoop(const std::shared_ptr<TcpConnection> & conn){
-    std::cout << std::this_thread::get_id()  << " TcpServer::HandleCloseInLoop - Remove connection id: " <<  conn->id() << " and fd: " << conn->fd() << std::endl;
+    std::cout << CurrentThread::tid() << " TcpServer::HandleCloseInLoop - Remove connection id: " <<  conn->id() << " and fd: " << conn->fd() << std::endl;
     auto it = connectionsMap_.find(conn->fd());
     assert(it != connectionsMap_.end());
     connectionsMap_.erase(connectionsMap_.find(conn->fd()));
@@ -276,5 +276,4 @@ void EventLoop::HandleRead(){
 }
 
 ```
-
 

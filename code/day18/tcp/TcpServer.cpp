@@ -4,7 +4,7 @@
 #include "Acceptor.h"
 #include "EventLoopThreadPool.h"
 #include "common.h"
-#include <thread>
+#include "CurrentThread.h"
 #include <memory>
 #include <assert.h>
 #include <iostream>
@@ -59,12 +59,12 @@ inline void TcpServer::HandleNewConnection(int fd){
 
 
 inline void TcpServer::HandleClose(const std::shared_ptr<TcpConnection> & conn){
-    std::cout <<  std::this_thread::get_id() << " TcpServer::HandleClose"  << std::endl;
+    std::cout <<  CurrentThread::tid() << " TcpServer::HandleClose"  << std::endl;
     main_reactor_->RunOneFunc(std::bind(&TcpServer::HandleCloseInLoop, this, conn));
 }
 
 inline void TcpServer::HandleCloseInLoop(const std::shared_ptr<TcpConnection> & conn){
-    std::cout << std::this_thread::get_id()  << " TcpServer::HandleCloseInLoop - Remove connection id: " <<  conn->id() << " and fd: " << conn->fd() << std::endl;
+    std::cout << CurrentThread::tid()  << " TcpServer::HandleCloseInLoop - Remove connection id: " <<  conn->id() << " and fd: " << conn->fd() << std::endl;
     auto it = connectionsMap_.find(conn->fd());
     assert(it != connectionsMap_.end());
     connectionsMap_.erase(connectionsMap_.find(conn->fd()));

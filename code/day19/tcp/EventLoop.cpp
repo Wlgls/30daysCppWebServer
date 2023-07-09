@@ -2,17 +2,16 @@
 
 #include "Channel.h"
 #include "Epoller.h"
-
+#include "CurrentThread.h"
 #include <memory>
 #include <vector>
 #include <stdio.h>
 #include <unistd.h>
-#include <thread>
 #include <sys/eventfd.h>
 #include <assert.h>
 
 
-EventLoop::EventLoop() : tid_(std::this_thread::get_id()) { 
+EventLoop::EventLoop() : tid_(CurrentThread::tid()) { 
     // 将Loop函数分配给了不同的线程，获取执行该函数的线程
     poller_ = std::make_unique<Epoller>();
     wakeup_fd_ = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
@@ -42,7 +41,7 @@ void EventLoop::UpdateChannel(Channel *ch) { poller_->UpdateChannel(ch); }
 void EventLoop::DeleteChannel(Channel *ch) { poller_->DeleteChannel(ch); }
 
 bool EventLoop::IsInLoopThread(){
-    return std::this_thread::get_id() == tid_;
+    return CurrentThread::tid() == tid_;
 }
 
 void EventLoop::RunOneFunc(std::function<void()> cb){

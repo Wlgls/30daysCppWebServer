@@ -7,6 +7,7 @@
 #include "TcpConnection.h"
 #include "Buffer.h"
 #include "EventLoop.h"
+#include "CurrentThread.h"
 #include <arpa/inet.h>
 #include <functional>
 #include <iostream>
@@ -37,7 +38,7 @@ void HttpServer::onConnection(const TcpConnectionPtr &conn){
     socklen_t peer_addrlength = sizeof(peeraddr);
     getpeername(clnt_fd, (struct sockaddr *)&peeraddr, &peer_addrlength);
 
-    std::cout << std::this_thread::get_id()
+    std::cout << CurrentThread::tid()
               << " EchoServer::OnNewConnection : new connection "
               << "[fd#" << clnt_fd << "]"
               << " from " << inet_ntoa(peeraddr.sin_addr) << ":" << ntohs(peeraddr.sin_port)
@@ -51,7 +52,7 @@ void HttpServer::onMessage(const TcpConnectionPtr &conn){
         if (!context->ParaseRequest(conn->read_buf()->c_str(), conn->read_buf()->Size()))
         {
             conn->Send("HTTP/1.1 400 Bad Request\r\n\r\n");
-            conn->Shutdown();
+            conn->HandleClose();
         }
 
         if (context->GetCompleteRequest())
@@ -77,7 +78,7 @@ void HttpServer::onRequest(const TcpConnectionPtr &conn, const HttpRequest &requ
     conn->Send(response.message().c_str());
 
     if(response.IsCloseConnection()){
-        conn->Shutdown();
+        conn->HandleClose();
     }
 }
 

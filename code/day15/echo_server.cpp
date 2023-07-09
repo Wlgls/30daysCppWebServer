@@ -4,11 +4,11 @@
 #include "tcp/Buffer.h"
 #include "tcp/ThreadPool.h"
 #include "tcp/TcpConnection.h"
+#include "tcp/CurrentThread.h"
 #include <iostream>
 #include <functional>
 #include <arpa/inet.h>
 #include <vector>
-#include <thread>
 
 class EchoServer{
     public:
@@ -40,7 +40,7 @@ void EchoServer::onConnection(const std::shared_ptr<TcpConnection> & conn){
     socklen_t peer_addrlength = sizeof(peeraddr);
     getpeername(clnt_fd, (struct sockaddr *)&peeraddr, &peer_addrlength);
 
-    std::cout << std::this_thread::get_id()
+    std::cout << CurrentThread::tid()
               << " EchoServer::OnNewConnection : new connection "
               << "[fd#" << clnt_fd << "]"
               << " from " << inet_ntoa(peeraddr.sin_addr) << ":" << ntohs(peeraddr.sin_port)
@@ -51,9 +51,9 @@ void EchoServer::onMessage(const std::shared_ptr<TcpConnection> & conn){
     // std::cout << CurrentThread::tid() << " EchoServer::onMessage" << std::endl;
     if (conn->state() == TcpConnection::ConnectionState::Connected)
     {
-        std::cout << std::this_thread::get_id() << "Message from clent " << conn->read_buf()->c_str() << std::endl;
+        std::cout << CurrentThread::tid() << "Message from clent " << conn->read_buf()->c_str() << std::endl;
         conn->Send(conn->read_buf()->c_str());
-        conn->Shutdown();
+        conn->HandleClose();
     }
 }
 

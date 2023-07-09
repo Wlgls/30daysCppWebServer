@@ -38,7 +38,6 @@ void HttpServer::onConnection(const TcpConnectionPtr &conn){
     if(auto_close_conn_){
         loop_->RunAfter(AUTOCLOSETIMEOUT, std::move(std::bind(&HttpServer::CloseConn, this, std::weak_ptr<TcpConnection>(conn))));
     }
-    
 }
 
 void HttpServer::onMessage(const TcpConnectionPtr &conn){

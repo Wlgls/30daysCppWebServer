@@ -3,8 +3,7 @@
 #include "Channel.h"
 #include "common.h"
 #include "EventLoop.h"
-
-#include <thread>
+#include "CurrentThread.h"
 #include <memory>
 #include <unistd.h>
 #include <assert.h>
@@ -40,7 +39,7 @@ void TcpConnection::ConnectionEstablished(){
 }
 
 void TcpConnection::ConnectionDestructor(){
-    //std::cout << std::this_thread::get_id() << " TcpConnection::ConnectionDestructor" << std::endl;
+    //std::cout << CurrentThread::tid() << " TcpConnection::ConnectionDestructor" << std::endl;
     // 将该操作从析构处，移植该处，增加性能，因为在析构前，当前`TcpConnection`已经相当于关闭了。
     // 已经可以将其从loop处离开。
     loop_->DeleteChannel(channel_.get());
@@ -58,7 +57,7 @@ void TcpConnection::set_message_callback(std::function<void(const std::shared_pt
 
 
 void TcpConnection::HandleClose() {
-    //std::cout << std::this_thread::get_id() << " TcpConnection::HandleClose" << std::endl;
+    //std::cout << CurrentThread::tid() << " TcpConnection::HandleClose" << std::endl;
     if (state_ != ConnectionState::Disconected)
     {
         state_ = ConnectionState::Disconected;
@@ -73,14 +72,6 @@ void TcpConnection::HandleMessage(){
     if (on_message_)
     {
         on_message_(shared_from_this());
-    }
-}
-
-
-void TcpConnection::Shutdown(){
-    //std::cout << std::this_thread::get_id() << " TcpConnection::Shutdown" << std::endl;
-    if(::shutdown(connfd_, SHUT_RD)<0){
-        std::cout << "Shutdown failed" << std::endl;
     }
 }
 
