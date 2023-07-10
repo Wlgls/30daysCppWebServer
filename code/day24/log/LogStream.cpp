@@ -1,26 +1,7 @@
 #include <stdio.h>
 #include "LogStream.h"
 
-FixedBuffer::FixedBuffer():cur_(data_){};
-FixedBuffer::~FixedBuffer(){};
 
-void FixedBuffer::append(const char *buf, int len){
-    if(avail() > len){
-        memcpy(cur_, buf, len);
-        cur_ += len;
-    }
-}
-
-const char *FixedBuffer::data() const { return data_; }
-int FixedBuffer::len() const { return static_cast<int>(cur_ - data_); }
-
-char *FixedBuffer::current() { return cur_; }
-int FixedBuffer::avail() const { return static_cast<int>(end() - cur_); }
-void FixedBuffer::add(int len) { cur_ += len; }
-
-void FixedBuffer::reset() { cur_ = data_; }
-void FixedBuffer::clear() { bzero(data_, sizeof(data_)); }
-const char *FixedBuffer::end() const { return data_ + sizeof(data_); }
 
 LogStream::LogStream(){}
 LogStream::~LogStream(){}
@@ -32,10 +13,8 @@ void LogStream::append(const char *data, int len){
 const LogStream::Buffer & LogStream::buffer() const { return buffer_; }
 
 void LogStream::resetBuffer() {
-    buffer_.clear();
-    buffer_.reset();
+    buffer_.bzero();
 }
-
 
 LogStream& LogStream:: operator<<(bool v){
     buffer_.append(v ? "1" : "0", 1);

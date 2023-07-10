@@ -3,7 +3,10 @@
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "EventLoop.h"
+#include "Logging.h"
+#include "AsyncLogging.h"
 #include <string>
+#include <memory>
 
 const std::string html = " <font color=\"red\">This is html!</font> ";
 void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
@@ -36,6 +39,16 @@ void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
     return;
 }
 
+std::unique_ptr<AsyncLogging> asynclog;
+void AsyncOutputFunc(const char *data, int len)
+{
+    asynclog->Append(data, len);
+}
+
+void AsyncFlushFunc() {
+    asynclog->Flush();
+}
+
 int main(int argc, char *argv[]){
     int port;
     if (argc <= 1)
@@ -47,7 +60,14 @@ int main(int argc, char *argv[]){
         printf("error");
         exit(0);
     }
-    int size = std::thread::hardware_concurrency();
+
+    asynclog = std::make_unique<AsyncLogging>();
+    Logger::setOutput(AsyncOutputFunc);
+    Logger::setFlush(AsyncFlushFunc);
+
+    asynclog->Start();
+
+    int size = std::thread::hardware_concurrency() - 1;
     EventLoop *loop = new EventLoop();
     HttpServer *server = new HttpServer(loop, "127.0.0.1", port, true);
     server->SetHttpCallback(HttpResponseCallback);
