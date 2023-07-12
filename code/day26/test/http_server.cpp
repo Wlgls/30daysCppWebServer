@@ -7,8 +7,24 @@
 #include "AsyncLogging.h"
 #include <string>
 #include <memory>
+#include <stdio.h>
+#include <fstream>
 
-const std::string html = " <font color=\"red\">This is html!</font> ";
+
+std::string ReadFile(const std::string& image_path){
+    std::ifstream is(image_path.c_str(), std::ifstream::in);
+    is.seekg(0, is.end);
+    int flength = is.tellg();
+    is.seekg(0, is.beg);
+    char * buffer = new char[flength];
+    is.read(buffer, flength);
+    std::string image(buffer, flength);
+    return image;
+}
+
+
+std::string html = "< font color =\"red\">This is html!</font>";
+
 void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
 {
     if(request.method() != HttpRequest::Method::kGet){
@@ -19,23 +35,29 @@ void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
 
     {
         std::string url = request.url();
-        if(url == "/"){
+        if(url == "/1"){
+            std::string body = ReadFile("../static/index.html");
             response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
-            response->SetBody(html);
+            response->SetBody(body);
             response->SetContentType("text/html");
         }else if(url == "/hello"){
             response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
             response->SetBody("hello world\n");
             response->SetContentType("text/plain");
-        }else if(url == "/favicon.ico"){
+        }else if(url == "/2"){
+            std::string body = ReadFile("../static/cat.jpg");
             response->SetStatusCode(HttpResponse::HttpStatusCode::k200K);
-        }else{
+            response->SetBody(body);
+            response->SetContentType("image/jpeg");
+        }
+        else{
             response->SetStatusCode(HttpResponse::HttpStatusCode::k404NotFound);
             response->SetStatusMessage("Not Found");
             response->SetBody("Sorry Not Found\n");
             response->SetCloseConnection(true);
         }
     }
+
     return;
 }
 
@@ -60,7 +82,7 @@ int main(int argc, char *argv[]){
         printf("error");
         exit(0);
     }
-    // 开发阶段暂时不适用异步日志
+
     //asynclog = std::make_unique<AsyncLogging>();
     //Logger::setOutput(AsyncOutputFunc);
     //Logger::setFlush(AsyncFlushFunc);
