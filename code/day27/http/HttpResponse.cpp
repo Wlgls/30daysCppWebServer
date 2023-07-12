@@ -1,5 +1,6 @@
 #include "HttpResponse.h"
 #include <string>
+#include <iostream>
 
 HttpResponse::HttpResponse(bool close_connection) : 
     status_code_(HttpStatusCode::kUnkonwn), close_connection_(close_connection){};
@@ -29,6 +30,7 @@ void HttpResponse::AddHeader(const std::string &key, const std::string &value){
 void HttpResponse::SetBody(const std::string &body){
     body_ = std::move(body);
 }
+
 
 bool HttpResponse::IsCloseConnection(){
     return close_connection_;

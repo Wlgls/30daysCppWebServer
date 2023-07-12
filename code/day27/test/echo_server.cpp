@@ -8,7 +8,16 @@
 #include <functional>
 #include <arpa/inet.h>
 #include <vector>
-
+#include <stdio.h>
+#include <memory>
+#include <iostream>
+#include <fstream>
+#include <sys/socket.h>
+#include <thread>
+#include <memory>
+#include <unistd.h>
+#include <assert.h>
+#include <iostream>
 class EchoServer{
     public:
         EchoServer(EventLoop *loop, const char *ip, const int port);
@@ -34,6 +43,18 @@ void EchoServer::start(){
     server_.Start();
 }
 
+std::string read_image(const std::string& image_path){
+    std::ifstream is(image_path.c_str(), std::ifstream::in);
+    is.seekg(0, is.end);
+    int flength = is.tellg();
+    is.seekg(0, is.beg);
+    char * buffer = new char[flength];
+    is.read(buffer, flength);
+    std::string image(buffer, flength);
+    return image;
+}
+
+
 void EchoServer::onConnection(const std::shared_ptr<TcpConnection> & conn){
     // 获取接收连接的Ip地址和port端口
     int clnt_fd = conn->fd();
@@ -52,9 +73,20 @@ void EchoServer::onMessage(const std::shared_ptr<TcpConnection> & conn){
     // std::cout << std::this_thread::get_id() << " EchoServer::onMessage" << std::endl;
     if (conn->state() == TcpConnection::ConnectionState::Connected)
     {
-        std::cout << std::this_thread::get_id() << "Message from clent " << conn->read_buf()->c_str() << std::endl;
-        conn->Send(conn->read_buf()->c_str());
-        conn->Shutdown();
+        std::string a = "HTTP/1.1 200 \r\n"
+                        "Content-Length: 10526 \r\n"
+                        "Connection: Keep-Alive \r\n"
+                        "Content-Type: image/jpeg \r\n"
+                        "\r\n";
+        a += read_image("../static/cat.jpg");
+        int bodyl = a.length();
+        const char *body = a.data();
+
+        char *buffer = new char[bodyl];
+        memcpy(buffer, body, bodyl);
+
+        ::write(conn->fd(), buffer, bodyl);
+        // std::cout << conn->Send(body.data(), body.length());
     }
 }
 

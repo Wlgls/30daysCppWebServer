@@ -55,16 +55,13 @@ void HttpServer::onConnection(const TcpConnectionPtr &conn){
 void HttpServer::onMessage(const TcpConnectionPtr &conn){
     if (conn->state() == TcpConnection::ConnectionState::Connected)
     {
-        //LOG_INFO << "\n"
-        //         << conn->read_buf()->PeekAllAsString();
         // 保存最近一次活跃的时间
         if(auto_close_conn_)
             conn->UpdateTimeStamp(TimeStamp::Now());
 
         HttpContext *context = conn->context();
-        if (!context->ParaseRequest(conn->read_buf()->RetrieveAllAsString()))
+        if (!context->ParaseRequest(conn->read_buf()->c_str(), conn->read_buf()->Size()))
         {
-            LOG_INFO << "HttpServer::onMessage : Receive non HTTP message";
             conn->Send("HTTP/1.1 400 Bad Request\r\n\r\n");
             conn->HandleClose();
         }
@@ -75,6 +72,7 @@ void HttpServer::onMessage(const TcpConnectionPtr &conn){
             context->ResetContextStatus();
         }
     }
+    
 }
 
 void HttpServer::SetHttpCallback(const HttpServer::HttpResponseCallback &cb){
@@ -88,8 +86,9 @@ void HttpServer::onRequest(const TcpConnectionPtr &conn, const HttpRequest &requ
                   connection_state != "keep-alive"));
     HttpResponse response(close);
     response_callback_(request, &response);
-
-    conn->Send(response.message());
+    
+    
+    conn->Send(response.message().data(), response.message().length());
 
     if(response.IsCloseConnection()){
         conn->HandleClose();

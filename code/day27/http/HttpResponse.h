@@ -29,7 +29,6 @@ class HttpResponse{
         void AddHeader(const std::string &key, const std::string &value); // 设置回应头
 
         void SetBody(const std::string &body);
-
         std::string message(); // 将信息加入到buffer中。
 
         bool IsCloseConnection();
