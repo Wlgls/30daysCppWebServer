@@ -35,6 +35,8 @@ int Buffer::readablebytes() const { return write_index_ - read_index_; }
 int Buffer::writablebytes() const { return static_cast<int>(buffer_.size()) - write_index_; } 
 int Buffer::prependablebytes() const { return read_index_; }
 
+char *Buffer::Peek() { return beginread(); }
+const char *Buffer::Peek() const { return beginread(); }
 
 std::string Buffer::PeekAsString(int len){
     return std::string(beginread(), beginread() + len);

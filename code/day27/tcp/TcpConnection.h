@@ -37,19 +37,19 @@ public:
     void set_message_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn); 
 
     // 设定send buf
-    void set_send_buf(const char *str);
-    void set_send_buf(const char *str, int len);
     Buffer *read_buf();
     Buffer *send_buf();
 
     void Read(); // 读操作
     void Write(); // 写操作
+    
     void Send(const std::string &msg); // 输出信息
     void Send(const char *msg, int len); // 输出信息
     void Send(const char *msg);
 
 
     void HandleMessage(); // 当接收到信息时，进行回调
+    void HandleWrite();   // 写操作
 
     // 当TcpConnection发起关闭请求时，进行回调，释放相应的socket.
     void HandleClose(); 

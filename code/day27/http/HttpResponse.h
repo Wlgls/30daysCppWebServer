@@ -13,6 +13,8 @@ class HttpResponse{
             kUnkonwn = 1,
             k100Continue = 100,
             k200K = 200,
+            k301K = 301,
+            k302K = 302,
             k400BadRequest = 400,
             k403Forbidden = 403,
             k404NotFound = 404,
@@ -29,6 +31,7 @@ class HttpResponse{
         void AddHeader(const std::string &key, const std::string &value); // 设置回应头
 
         void SetBody(const std::string &body);
+
         std::string message(); // 将信息加入到buffer中。
 
         bool IsCloseConnection();

@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 #include <iostream>
+#include <cstring>
 
 HttpContext::HttpContext() :state_(HttpRequestParaseState::START){
     request_ = std::make_unique<HttpRequest>();
@@ -19,6 +20,13 @@ bool HttpContext::GetCompleteRequest(){
 
 void HttpContext::ResetContextStatus(){
     state_ = HttpRequestParaseState::START;
+}
+
+bool HttpContext::ParaseRequest(const std::string& msg){
+    return ParaseRequest(msg.data(), static_cast<int>(msg.size()));
+}
+bool HttpContext::ParaseRequest(const char *begin){
+    return ParaseRequest(begin, static_cast<int>(strlen(begin)));
 }
 
 bool HttpContext::ParaseRequest(const char *begin, int size){
@@ -70,13 +78,13 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
                 break;
             }
             case HttpRequestParaseState::IN_URL:{
-                // 进入url中,对路径和请求参数进行解析
+                // 进入url中
                 if(ch == '?'){
                     // 当遇到?时，表明进入了request params的处理。
                     request_->SetUrl(std::string(start, end));
                     start = end + 1;
                     state_ = HttpRequestParaseState::BEFORE_URL_PARAM_KEY;
-                   
+                    
                 }else if (isblank(ch)){
                     // 说明没有请求参数，请求路径完成
                     request_->SetUrl(std::string(start, end));
@@ -86,7 +94,7 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
                 break;
             }
             case HttpRequestParaseState::BEFORE_URL_PARAM_KEY:{
-                //对请求路径中的请求参数进行解析，解析key值
+                //std::cout << ch << std::endl;
                 if(isblank(ch) || ch == CR || ch == LF){
                     // 当开始进入url params时，遇到了空格，换行等，则不合法
                     // std::cout << ch << std::endl;
@@ -97,7 +105,6 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
                 break;
             }
             case HttpRequestParaseState::URL_PARAM_KEY:{
-                // 遇到了"="，准备进入下一个状态
                 if(ch == '='){
                     // 遇到= 说明key解析完成
                     colon = end;
@@ -108,7 +115,6 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
                 break;
             }
             case HttpRequestParaseState::BEFORE_URL_PARAM_VALUE:{
-                // 对请求参数中，值的解析
                 if(isblank(ch) || ch == LF || ch == CR){
                     state_ = HttpRequestParaseState::kINVALID;
                 }else{
@@ -135,7 +141,6 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
                 break;
             }
             case HttpRequestParaseState::BEFORE_PROTOCOL:{
-                // 开始对协议进行解析
                 //std::cout << std::string(start, end) << std::endl;
                 if(isblank(ch)){
                     // nothing
@@ -145,7 +150,6 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
                 break;
             }
             case HttpRequestParaseState::PROTOCOL:{
-                // 对协议的解析
                 if(ch == '/'){
                     request_->SetProtocol(std::string(start, end));
                     start = end + 1;
@@ -157,7 +161,6 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
             }
 
             case HttpRequestParaseState::BEFORE_VERSION:{
-                // 开始对版本解析
                 if(isdigit(ch)){
                     state_ = HttpRequestParaseState::VERSION;
                 }else{
@@ -167,7 +170,6 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
             }
 
             case HttpRequestParaseState::VERSION:{
-                // 对版本解析
                 if(ch == CR){
                     // 说明结束了
                     request_->SetVersion(std::string(start, end));
@@ -214,7 +216,6 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
                 if(ch == CR){
                     // 说明遇到了空行，大概率时结束了
                     state_ = HttpRequestParaseState::CR_LF_CR;
-                    //start  = end + 1;
                 }else if(isblank(ch)){
                     state_ = HttpRequestParaseState::kINVALID;
                 }else{
@@ -225,8 +226,6 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
             case HttpRequestParaseState::CR_LF_CR:{ 
                 // 判断是否需要解析请求体
                 //
-                //std::cout << "c:" << (ch == '\n') << std::endl;
-                //std::cout << "size:" << end-begin << std::endl;
                 if(ch == LF){
                     // 这就意味着遇到了空行，要进行解析请求体了
                     if(request_-> headers().count("Content-Lenght")){

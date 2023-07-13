@@ -69,7 +69,8 @@ class Buffer{
         std::string RetrieveUtilAsString(const char *end);
 
         // 查看数据，但是不更新`read_index_`位置
-
+        char *Peek();
+        const char *Peek() const;
         std::string PeekAsString(int len);
         std::string PeekAllAsString();
 
@@ -131,7 +132,7 @@ std::string Buffer::RetrieveAsString(int len){
     return ret;
 }
 
-
+char *Buffer::Peek() { return beginread(); }
 std::string Buffer::PeekAsString(int len){
     return std::string(beginread(), beginread() + len);
 }

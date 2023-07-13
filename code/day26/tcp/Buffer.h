@@ -41,6 +41,8 @@ class Buffer{
         int prependablebytes() const;
 
         // 查看数据，但是不更新`read_index_`位置
+        char *Peek();
+        const char *Peek() const;
         std::string PeekAsString(int len);
         std::string PeekAllAsString();
 

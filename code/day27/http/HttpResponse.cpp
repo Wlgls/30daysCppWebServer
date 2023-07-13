@@ -1,6 +1,5 @@
 #include "HttpResponse.h"
 #include <string>
-#include <iostream>
 
 HttpResponse::HttpResponse(bool close_connection) : 
     status_code_(HttpStatusCode::kUnkonwn), close_connection_(close_connection){};
@@ -31,7 +30,6 @@ void HttpResponse::SetBody(const std::string &body){
     body_ = std::move(body);
 }
 
-
 bool HttpResponse::IsCloseConnection(){
     return close_connection_;
 }
@@ -45,14 +43,14 @@ std::string HttpResponse::message(){
     if(close_connection_){
         message += ("Connection: close\r\n");
     }else{
-        message += ("Content-Length: " + std::to_string(body_.size()) + "\r\n");
         message += ("Connection: Keep-Alive\r\n");
     }
-
+    message += ("Content-Length: " + std::to_string(body_.size()) + "\r\n");
     for (const auto&header : headers_){
         message += (header.first + ": " + header.second + "\r\n");
     }
 
+    message += "Cache-Control: no-store, no-cache, must-revalidate\r\n";
     message += "\r\n";
     message += body_;
 

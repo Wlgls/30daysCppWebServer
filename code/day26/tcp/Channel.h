@@ -18,7 +18,6 @@ class Channel {
         void EnableRead();  // 允许读
         void EnableWrite(); // 允许写
         void EnableET(); // 以ET形式触发
-        void DisableWrite();
 
         int fd() const;  // 获取fd
         short listen_events() const; // 监听的事件
