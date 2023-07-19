@@ -20,6 +20,12 @@ class HttpResponse{
             k404NotFound = 404,
             k500internalServerError = 500
         };
+
+        enum HttpBodyType
+        {
+            FILE_TYPE,
+            HTML_TYPE,
+        }
         HttpResponse(bool close_connection);
         ~HttpResponse();
 
@@ -28,6 +34,7 @@ class HttpResponse{
         void SetCloseConnection(bool close_connection);
 
         void SetContentType(const std::string &content_type); 
+        void SetContentLen()
         void AddHeader(const std::string &key, const std::string &value); // 设置回应头
 
         void SetBody(const std::string &body);
@@ -35,6 +42,10 @@ class HttpResponse{
         std::string message(); // 将信息加入到buffer中。
 
         bool IsCloseConnection();
+
+        void SetFileFd(int filefd);
+        void SetBodyType(HttpBodyType bodytype);
+        HttpBodyType bodytype();
 
     private:
         // static const std::string server_name_;
@@ -45,4 +56,8 @@ class HttpResponse{
         std::string status_message_;
         std::string body_;
         bool close_connection_;
+
+        // 针对文件的操作
+        int filefd_;
+        HttpBodyType body_type_;
 };

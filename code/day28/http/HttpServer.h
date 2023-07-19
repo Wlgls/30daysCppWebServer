@@ -41,9 +41,9 @@ public:
     // 不控制conn的生命周期，依然由正常的方式进行释放。
     void ActiveCloseConn(std::weak_ptr<TcpConnection> &conn);
 
-    //void TestTimer_IntervalEvery3Seconds() const {
-    //    printf("%s TestTimer_IntervalEvery3Seconds\n", TimeStamp::Now().ToFormattedString().data());
-    //}
+    // void TestTimer_IntervalEvery3Seconds() const {
+    //     printf("%s TestTimer_IntervalEvery3Seconds\n", TimeStamp::Now().ToFormattedString().data());
+    // }
 
 private:
     EventLoop *loop_;
@@ -53,3 +53,5 @@ private:
     bool auto_close_conn_;
     HttpResponseCallback response_callback_;
 };
+
+

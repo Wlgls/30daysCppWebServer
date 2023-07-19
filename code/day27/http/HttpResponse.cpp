@@ -45,7 +45,10 @@ std::string HttpResponse::message(){
     }else{
         message += ("Connection: Keep-Alive\r\n");
     }
-    message += ("Content-Length: " + std::to_string(body_.size()) + "\r\n");
+    if(body){
+        message += ("Content-Length: " + std::to_string(body_.size()) + "\r\n");
+    }
+    
     for (const auto&header : headers_){
         message += (header.first + ": " + header.second + "\r\n");
     }
@@ -56,3 +59,7 @@ std::string HttpResponse::message(){
 
     return message;
 }
+
+void HttpResponse::SetFileFd(int filefd){ filefd_ = filefd; }
+void HttpResponse::SetBodyType(HttpBodyType bodytype) { body_type_ = bodytype; }
+HttpResponse::HttpBodyType HttpResponse::bodytype() { return body_type_; }

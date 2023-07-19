@@ -97,6 +97,8 @@ void HttpServer::onRequest(const TcpConnectionPtr &conn, const HttpRequest &requ
 
     conn->Send(response.message());
 
+    
+
     if(response.IsCloseConnection()){
         conn->HandleClose();
     }
