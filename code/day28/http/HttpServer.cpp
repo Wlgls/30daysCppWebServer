@@ -111,7 +111,6 @@ void HttpServer::onRequest(const TcpConnectionPtr &conn, const HttpRequest &requ
         }else{
             LOG_INFO << "Close File Ok";
         }
-        void(ret);
     }
 
     if(response.IsCloseConnection()){
