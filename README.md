@@ -4,6 +4,7 @@
 
 本文主要是狗尾续貂，对原仓库的后续工作进行了简单的处理，由于本人能力有限，在原仓库的基础上，抛弃了day13的工程定义，而专注于功能的实现，并进行了自我改造，前day01至day12与源仓库相同，后续为相应的改编。
 
+现在大致上就已经完成了该内容，在原有的基础上补足了HTTP协议的解析，异步日日志库模块和定时器模块。并使用文件上传和下载进行了简单的应用。由于水平不足，里面可能充斥着各种各样的问题，但是确实一点点仿照着原仓库整完了，关于文件的上传和下载，可以说写的非常简陋，里面bug应该很多，应用场景也几乎没有。后续可能还需要进行增加和修订，但是现在还需要增加理论基础。
 
 
 [day01-从一个最简单的socket开始](https://github.com/Wlgls/30daysCppWebServer/blob/main/day01-从一个最简单的socket开始.md)
@@ -52,8 +53,15 @@
 
 [day23-定义前端日志库，实现同步输出](https://github.com/Wlgls/30daysCppWebServer/blob/main/day23-定义前端日志库，实现同步输出.md)
 
-[day24-异步日志库](https://github.com/Wlgls/30daysCppWebServer/blob/main/day24-异步日志库.md)
+[day25-更有效的缓冲区](https://github.com/Wlgls/30daysCppWebServer/blob/main/day25-更有效的缓冲区.md)
 
-TODOLIST:
+[day26-监听写事件](https://github.com/Wlgls/30daysCppWebServer/blob/main/day26-监听写事件.md)
 
-* 静态资源存储
+[day27-处理静态文件，实现POST请求](https://github.com/Wlgls/30daysCppWebServer/blob/main/day27-处理静态文件，实现POST请求.md)
+
+[day28-文件服务器的简单实现，文件的展示和下载](https://github.com/Wlgls/30daysCppWebServer/blob/main/day28-文件服务器的简单实现，文件的展示和下载.md)
+
+[day29-文件的上传](https://github.com/Wlgls/30daysCppWebServer/blob/main/day29-文件的上传.md)
+
+[day30-WebBench的测试](https://github.com/Wlgls/30daysCppWebServer/blob/main/day30-WebBench的测试.md)
+

@@ -36,7 +36,6 @@ public:
     void onMessage(const TcpConnectionPtr &conn);
     void onRequest(const TcpConnectionPtr &conn, const HttpRequest &request);
 
-    void OnFile(const TcpConnectionPtr &conn);
 
     void SetThreadNums(int thread_nums);
 
@@ -46,7 +45,6 @@ public:
     // void TestTimer_IntervalEvery3Seconds() const {
     //     printf("%s TestTimer_IntervalEvery3Seconds\n", TimeStamp::Now().ToFormattedString().data());
     // }
-    void UpLoadFile(const std::string &filename, const std::string &message, const std::string &boundary);
 
 private:
     EventLoop *loop_;

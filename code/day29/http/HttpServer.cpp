@@ -57,81 +57,26 @@ void HttpServer::onConnection(const TcpConnectionPtr &conn){
 void HttpServer::onMessage(const TcpConnectionPtr &conn){
     if (conn->state() == TcpConnection::ConnectionState::Connected)
     {
-        LOG_INFO << "\n"
-                 << conn->read_buf()->PeekAllAsString();
-        
+        //LOG_INFO << "\n"
+        //         << conn->read_buf()->PeekAllAsString();
         
         if(auto_close_conn_)
              // 保存最近一次活跃的时间
             conn->UpdateTimeStamp(TimeStamp::Now());
 
         HttpContext *context = conn->context();
-        if (!context->ParaseRequest(conn->read_buf()->PeekAllAsString()) && !conn->cur_is_file()) // 并且也不是文件
+        if (!context->ParaseRequest(conn->read_buf()->RetrieveAllAsString())) 
         {
-            
             LOG_INFO << "HttpServer::onMessage : Receive non HTTP message";
             conn->Send("HTTP/1.1 400 Bad Request\r\n\r\n");
             conn->HandleClose();
         }
         
-        if(conn->cur_is_file()){
-            // 这意味着当前接收到是一个文件
-            // 首先比对boundary是否正确
-            // 这里应该可以优化，直接在buffer中实现对`\r\n`的寻找就不需要频繁的赋值了
-            std::string message = conn->read_buf()->PeekAllAsString();
-            size_t found = message.find("\r\n"); // 找到第一个`\r\n`,表示寻找boundary值
-            if (found != std::string::npos){
-                if (conn->boundary() == message.substr(0, found))
-                {
-                    // 说明边界对应了，正确
-                    message.erase(0, found + 2);// 去掉第一行，方便后续读取。如果直接在buffer中实现了对\r\n的寻找，可以通过修改可读索引来控制
-                }
-                else
-                {
-                    LOG_ERROR << "boundary not equal";
-                    return;
-                }
-            }
-
-            // 接下来将进一步处理文件部分，主要由两个部分组成，Header和Body。对于Header,我们需要提取出`filename`作为文件名。
-            std::string strline;
-            std::string filename;
-            while (1)
-            {
-                found = message.find("\r\n");
-                if (found != std::string::npos){
-                    strline = message.substr(0, found + 2);// 包含\r\n
-                    message.erase(0, found + 2);
-                    if(strline == "\r\n"){
-                        // 说明接下来是文件内容
-                        UpLoadFile(filename, message, conn->boundary());
-                        break;
-                    }
-                    // 寻找文件名
-                    found = strline.find("filename");
-                    if(found != std::string::npos){ 
-                        // 包含`"\r\n`
-                        LOG_INFO << strline << "   " << strline.size() - 4;
-                        strline.erase(0, found + std::string("filename=\"").size());// 是放掉这些数据，可以方便更好的定位filename的位置。也可以直接换算
-                        filename = strline.substr(0, strline.size() - 3);
-                        LOG_INFO << "FILENAME::" << filename << "1234";
-                    }
-                }else{
-                    LOG_ERROR << "recv ERROR";
-                    break;
-                }
-            }
-            conn->set_cur_is_file(false);
-            OnFile(conn);
-            return;
-        }
-        
         if (context->GetCompleteRequest())
         {
             onRequest(conn, *context->request());
+            context->ResetContextStatus();
         }
-        conn->read_buf()->RetrieveAll();
-        context->ResetContextStatus();
     }
 }
 
@@ -146,21 +91,40 @@ void HttpServer::onRequest(const TcpConnectionPtr &conn, const HttpRequest &requ
     bool isclose = (connection_state == "Close" ||
                   (request.version() == HttpRequest::Version::kHttp10 &&
                   connection_state != "keep-alive"));
+
     
-    // 如果是文件的话
-    if(request.GetHeader("Content-Type").substr(0, 19) == "multipart/form-data"){
-        // 说明是文件, 直接返回
-        std::string content_type = request.GetHeader("Content-Type");
-        size_t found = content_type.find("boundary");
-        if (found != std::string::npos)
-        {
-            conn->set_boundary("--" + content_type.substr(found + 9));
+    if (request.GetHeader("Content-Type").find("multipart/form-data") != std::string::npos){
+        // 对文件进行处理
+        //
+        // 先找到文件名，一般第一个filename位置应该就是文件名的所在地。
+        // 从content-type中找到边界
+        size_t boundary_index = request.GetHeader("Content-Type").find("boundary");
+        std::string boundary = request.GetHeader("Content-Type").substr(boundary_index + std::string("boundary=").size());
+
+        std::string filemessage = request.body();
+        size_t begin_index = filemessage.find("filename");
+        if(begin_index == std::string::npos ){
+            LOG_ERROR << "cant find filename";
+            return;
         }
-        // LOG_INFO << conn->boundary();
-        conn->set_cur_is_file(true);
-        return;
+        begin_index += std::string("filename=\"").size();
+        size_t end_index = filemessage.find("\"\r\n", begin_index); // 能用
+
+        std::string filename = filemessage.substr(begin_index, end_index - begin_index);
+
+        // 对文件信息的处理
+        begin_index = filemessage.find("\r\n\r\n") + 4; //遇到空行，说明进入了文件体
+        end_index = filemessage.find(std::string("--") + boundary + "--"); // 对文件内容边界的搜寻
+
+        std::string filedata = filemessage.substr(begin_index, end_index - begin_index);
+        // 写入文件
+        std::ofstream ofs("../files/" + filename, std::ios::out | std::ios::app | std::ios::binary);
+        ofs.write(filedata.data(), filedata.size());
+        ofs.close();
     }
 
+
+    // 与之前相同
     HttpResponse response(isclose);
     response_callback_(request, &response);
     // 如果是HTML，直接发送所有信息
@@ -184,16 +148,6 @@ void HttpServer::onRequest(const TcpConnectionPtr &conn, const HttpRequest &requ
     }
 }
 
-void HttpServer::OnFile(const TcpConnectionPtr &conn){
-    HttpResponse response(true);
-    response.SetStatusCode(HttpResponse::HttpStatusCode::k302K);
-    response.SetStatusMessage("Moved Temporarily");
-    response.SetContentType("text/html");
-    response.AddHeader("Location", "/fileserver");
-
-    conn->Send(response.message());
-}
-
 void HttpServer::start(){
     server_->Start();
 }
@@ -210,18 +164,4 @@ void HttpServer::ActiveCloseConn(std::weak_ptr<TcpConnection> & connection){
             loop_->RunAfter(AUTOCLOSETIMEOUT, std::move(std::bind(&HttpServer::ActiveCloseConn, this, connection)));
         }
     }
-}
-
-void HttpServer::UpLoadFile(const std::string &filename, const std::string &message, const std::string &boundary){
-    LOG_INFO << "UpLoadFile";
-    size_t found = message.find(boundary);
-    std::string filedata;
-    if (found != std::string::npos)
-    {
-        filedata = message.substr(0, found);
-    }
-
-    std::ofstream ofs("../files/" + filename, std::ios::out | std::ios::app | std::ios::binary);
-    ofs.write(filedata.data(), filedata.size());
-    ofs.close();
 }

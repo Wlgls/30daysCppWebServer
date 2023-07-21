@@ -20,6 +20,7 @@ bool HttpContext::GetCompleteRequest(){
 
 void HttpContext::ResetContextStatus(){
     state_ = HttpRequestParaseState::START;
+    request_.reset(new HttpRequest());
 }
 
 bool HttpContext::ParaseRequest(const std::string& msg){
@@ -228,8 +229,8 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
                 //
                 if(ch == LF){
                     // 这就意味着遇到了空行，要进行解析请求体了
-                    if(request_-> headers().count("Content-Lenght")){
-                        if(atoi(request_->GetHeader("Content-Lenght").c_str()) > 0){
+                    if(request_-> headers().count("Content-Length")){
+                        if(atoi(request_->GetHeader("Content-Length").c_str()) > 0){
                             state_ = HttpRequestParaseState::BODY;
                         }else{
                             state_ = HttpRequestParaseState::COMPLETE;
@@ -251,9 +252,12 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
             case HttpRequestParaseState::BODY:{
                 
                 int bodylength = size - (end - begin);
-                //std::cout << "bodylength:" << bodylength << std::endl;
                 request_->SetBody(std::string(start, start + bodylength));
-                state_ = HttpRequestParaseState::COMPLETE;
+
+                if (bodylength >= atoi(request_->GetHeader("Content-Length").c_str()))
+                {
+                    state_ = HttpRequestParaseState::COMPLETE;
+                }
                 break;
             }
 
@@ -264,8 +268,7 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
             
             end++;
     }
-    
-    return state_ == HttpRequestParaseState::COMPLETE;
+    return state_ == HttpRequestParaseState::COMPLETE || state_ == HttpRequestParaseState::BODY;
 }
 
 HttpRequest * HttpContext::request(){

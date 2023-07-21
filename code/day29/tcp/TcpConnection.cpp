@@ -15,7 +15,7 @@
 #include <sys/sendfile.h>
 
 
-TcpConnection::TcpConnection(EventLoop *loop, int connfd, int connid): connfd_(connfd), connid_(connid), loop_(loop), cur_is_file_(false){
+TcpConnection::TcpConnection(EventLoop *loop, int connfd, int connid): connfd_(connfd), connid_(connid), loop_(loop){
 
     if (loop != nullptr)
     {
@@ -215,9 +215,3 @@ void TcpConnection::SendFile(int filefd, int size){
         send_size += bytes_write;
     }
 }
-
-bool TcpConnection::cur_is_file() { return cur_is_file_; }
-void TcpConnection::set_cur_is_file(bool is_file) { cur_is_file_ = is_file; }
-
-std::string TcpConnection::boundary() { return boundary_; }
-void TcpConnection::set_boundary(const std::string &boundary) { boundary_ = std::move(boundary); }

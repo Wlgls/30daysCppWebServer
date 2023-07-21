@@ -64,11 +64,6 @@ public:
     TimeStamp timestamp() const;
     void UpdateTimeStamp(TimeStamp now);
 
-    void set_cur_is_file(bool isfile);
-    bool cur_is_file();
-    void set_boundary(const std::string &boundary);
-    std::string boundary();
-
 private:
     // 该连接绑定的Socket
     int connfd_;
@@ -98,6 +93,4 @@ private:
     TimeStamp timestamp_;
 
     // 主要是在处理文件时，需要需要保存boundary.以发现下一个报文中的信息。
-    bool cur_is_file_;
-    std::string boundary_;
 };

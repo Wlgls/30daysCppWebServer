@@ -46,9 +46,9 @@ enum HttpRequestParaseState
 
     CR_LF_CR, // 回车换行之后的状态
 
-    BODY, // 请求体
+    BODY = 100, // 请求体
 
-    COMPLETE, // 完成
+    COMPLETE=101, // 完成
 
 };
 
