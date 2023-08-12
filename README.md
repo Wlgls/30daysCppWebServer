@@ -6,7 +6,6 @@
 
 现在大致上就已经完成了该内容，在原有的基础上补足了HTTP协议的解析，异步日日志库模块和定时器模块。并使用文件上传和下载进行了简单的应用。由于水平不足，里面可能充斥着各种各样的问题，但是确实一点点仿照着原仓库整完了，关于文件的上传和下载，可以说写的非常简陋，里面bug应该很多，应用场景也几乎没有。后续可能还需要进行增加和修订，但是现在还需要增加理论基础。
 
-
 [day01-从一个最简单的socket开始](https://github.com/Wlgls/30daysCppWebServer/blob/main/day01-从一个最简单的socket开始.md)
 
 [day02-不要放过任何一个错误](https://github.com/Wlgls/30daysCppWebServer/blob/main/day02-不要放过任何一个错误.md)
@@ -31,7 +30,7 @@
 
 [day12-将服务器改写为主从Reactor多线程模式](https://github.com/Wlgls/30daysCppWebServer/blob/main/day12-将服务器改写为主从Reactor多线程模式.md)
 
-[day13-重构服务器、使用智能指针](https://github.com/Wlgls/30daysCppWebServer/blob/main/day13-重构服务器、使用智能指针.md)
+[day13-重构核心、使用智能指针](https://github.com/Wlgls/30daysCppWebServer/blob/main/day13-重构核心库、使用智能指针.md)
 
 [day14-重构Connection、修改生命周期](https://github.com/Wlgls/30daysCppWebServer/blob/main/day14-重构Connection、修改生命周期.md)
 
