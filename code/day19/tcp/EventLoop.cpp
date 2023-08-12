@@ -3,10 +3,13 @@
 #include "Channel.h"
 #include "Epoller.h"
 #include "CurrentThread.h"
+#include "TimerQueue.h"
+#include "TimeStamp.h"
 #include <memory>
 #include <vector>
 #include <stdio.h>
 #include <unistd.h>
+#include <thread>
 #include <sys/eventfd.h>
 #include <assert.h>
 
@@ -14,6 +17,7 @@
 EventLoop::EventLoop() : tid_(CurrentThread::tid()) { 
     // 将Loop函数分配给了不同的线程，获取执行该函数的线程
     poller_ = std::make_unique<Epoller>();
+    timer_queue_ = std::make_unique<TimerQueue>(this);
     wakeup_fd_ = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
     wakeup_channel_ = std::make_unique<Channel>(wakeup_fd_, this);
     calling_functors_ = false;
@@ -93,4 +97,19 @@ void EventLoop::HandleRead(){
     (void) read_size;
     assert(read_size == sizeof(read_one_byte));
     return;
+}
+
+
+void EventLoop::RunAt(TimeStamp timestamp, std::function<void()>const & cb){
+    timer_queue_->AddTimer(timestamp, std::move(cb), 0.0);
+}
+
+void EventLoop::RunAfter(double wait_time, std::function<void()> const & cb){
+    TimeStamp timestamp(TimeStamp::AddTime(TimeStamp::Now(), wait_time));
+    timer_queue_->AddTimer(timestamp, std::move(cb), 0.0);
+}
+
+void EventLoop::RunEvery(double interval, std::function<void()> const & cb){
+    TimeStamp timestamp(TimeStamp::AddTime(TimeStamp::Now(), interval));
+    timer_queue_->AddTimer(timestamp, std::move(cb), interval);
 }

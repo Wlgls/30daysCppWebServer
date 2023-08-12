@@ -3,9 +3,9 @@
 #include "EventLoop.h"
 #include "Acceptor.h"
 #include "ThreadPool.h"
-#include "CurrentThread.h"
 #include "common.h"
 #include <memory>
+#include "CurrentThread.h"
 #include <assert.h>
 #include <iostream>
 

@@ -4,7 +4,8 @@
 #include "Acceptor.h"
 #include "EventLoopThreadPool.h"
 #include "common.h"
-#include "CurrentThread.h"
+#include "Logging.h"
+#include <thread>
 #include <memory>
 #include <assert.h>
 #include <iostream>
@@ -33,9 +34,11 @@ void TcpServer::Start(){
 }
 
 inline void TcpServer::HandleNewConnection(int fd){
-    assert(fd != -1);
-    // uint64_t random = fd % sub_reactors_.size();
 
+    assert(fd != -1);
+    //LOG_INFO << "TcpServer::OnNewConnection - Add connection "
+    //         << "[id#" << next_conn_id_ << "-fd#"
+    //         <<  fd << "]";
     // 从线程池中获得一个EventLoop
     EventLoop *sub_reactor = thread_pool_->nextloop();
 
@@ -59,12 +62,11 @@ inline void TcpServer::HandleNewConnection(int fd){
 
 
 inline void TcpServer::HandleClose(const std::shared_ptr<TcpConnection> & conn){
-    std::cout <<  CurrentThread::tid() << " TcpServer::HandleClose"  << std::endl;
     main_reactor_->RunOneFunc(std::bind(&TcpServer::HandleCloseInLoop, this, conn));
 }
 
 inline void TcpServer::HandleCloseInLoop(const std::shared_ptr<TcpConnection> & conn){
-    std::cout << CurrentThread::tid()  << " TcpServer::HandleCloseInLoop - Remove connection id: " <<  conn->id() << " and fd: " << conn->fd() << std::endl;
+    LOG_INFO << "TcpServer::HandleCloseInLoop - Remove connection [id#" <<  conn->id() << "-fd#" << conn->fd() << "]";
     auto it = connectionsMap_.find(conn->fd());
     assert(it != connectionsMap_.end());
     connectionsMap_.erase(connectionsMap_.find(conn->fd()));

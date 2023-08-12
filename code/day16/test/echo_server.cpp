@@ -3,13 +3,12 @@
 #include "TcpConnection.h"
 #include "TcpServer.h"
 #include "Buffer.h"
-#include "ThreadPool.h"
 #include "CurrentThread.h"
+#include <thread>
 #include <iostream>
 #include <functional>
 #include <arpa/inet.h>
 #include <vector>
-#include <thread>
 
 class EchoServer{
     public:
@@ -19,6 +18,8 @@ class EchoServer{
         void start();
         void onConnection(const std::shared_ptr<TcpConnection> & conn);
         void onMessage(const std::shared_ptr<TcpConnection> & conn);
+
+        void SetThreadNums(int thread_nums);
 
     private:
         TcpServer server_;
@@ -49,6 +50,7 @@ void EchoServer::onConnection(const std::shared_ptr<TcpConnection> & conn){
 };
 
 void EchoServer::onMessage(const std::shared_ptr<TcpConnection> & conn){
+    // std::cout << CurrentThread::tid() << " EchoServer::onMessage" << std::endl;
     if (conn->state() == TcpConnection::ConnectionState::Connected)
     {
         std::cout << CurrentThread::tid() << "Message from clent " << conn->read_buf()->c_str() << std::endl;
@@ -56,6 +58,8 @@ void EchoServer::onMessage(const std::shared_ptr<TcpConnection> & conn){
         conn->HandleClose();
     }
 }
+
+void EchoServer::SetThreadNums(int thread_nums) { server_.SetThreadNums(thread_nums); }
 
 int main(int argc, char *argv[]){
     int port;
@@ -68,10 +72,12 @@ int main(int argc, char *argv[]){
         printf("error");
         exit(0);
     }
+    int size = std::thread::hardware_concurrency();
     EventLoop *loop = new EventLoop();
     EchoServer *server = new EchoServer(loop, "127.0.0.1", port);
+    server->SetThreadNums(size);
     server->start();
-    
+
     // delete loop;
     // delete server;
     return 0;

@@ -49,7 +49,7 @@ int main(int argc, char *argv[]){
     }
     int size = std::thread::hardware_concurrency();
     EventLoop *loop = new EventLoop();
-    HttpServer *server = new HttpServer(loop, "127.0.0.1", port);
+    HttpServer *server = new HttpServer(loop, "127.0.0.1", port, true);
     server->SetHttpCallback(HttpResponseCallback);
     server->SetThreadNums(size);
     server->start();

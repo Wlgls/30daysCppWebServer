@@ -2,14 +2,14 @@
 
 #include "Channel.h"
 #include "Epoller.h"
-#include "CurrentThread.h"
+
 #include "TimerQueue.h"
 #include "TimeStamp.h"
 #include <memory>
 #include <vector>
 #include <stdio.h>
 #include <unistd.h>
-#include <thread>
+#include "CurrentThread.h"
 #include <sys/eventfd.h>
 #include <assert.h>
 

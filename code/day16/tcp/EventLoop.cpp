@@ -7,11 +7,13 @@
 #include <vector>
 #include <stdio.h>
 #include <unistd.h>
+#include <thread>
 #include <sys/eventfd.h>
 #include <assert.h>
 
 
-EventLoop::EventLoop() { 
+EventLoop::EventLoop() : tid_(CurrentThread::tid()) { 
+    // 将Loop函数分配给了不同的线程，获取执行该函数的线程
     poller_ = std::make_unique<Epoller>();
     wakeup_fd_ = ::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
     wakeup_channel_ = std::make_unique<Channel>(wakeup_fd_, this);
@@ -27,8 +29,6 @@ EventLoop::~EventLoop() {
 }
 
 void EventLoop::Loop(){
-    // 将Loop函数分配给了不同的线程，获取执行该函数的线程
-    tid_ = CurrentThread::tid();
     while (true)
     {
         for (Channel *active_ch : poller_->Poll()){

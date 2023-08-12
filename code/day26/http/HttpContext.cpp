@@ -84,7 +84,6 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
                     request_->SetUrl(std::string(start, end));
                     start = end + 1;
                     state_ = HttpRequestParaseState::BEFORE_URL_PARAM_KEY;
-                   
                     
                 }else if (isblank(ch)){
                     // 说明没有请求参数，请求路径完成

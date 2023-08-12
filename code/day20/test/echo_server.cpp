@@ -54,7 +54,7 @@ void EchoServer::onMessage(const std::shared_ptr<TcpConnection> & conn){
     {
         std::cout << CurrentThread::tid() << "Message from clent " << conn->read_buf()->c_str() << std::endl;
         conn->Send(conn->read_buf()->c_str());
-        conn->HandleClose();
+        conn->Shutdown();
     }
 }
 

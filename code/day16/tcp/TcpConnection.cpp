@@ -3,14 +3,12 @@
 #include "Channel.h"
 #include "common.h"
 #include "EventLoop.h"
-
 #include "CurrentThread.h"
 #include <memory>
 #include <unistd.h>
 #include <assert.h>
 #include <iostream>
 #include <sys/socket.h>
-
 
 
 TcpConnection::TcpConnection(EventLoop *loop, int connfd, int connid): connfd_(connfd), connid_(connid), loop_(loop){
@@ -23,9 +21,11 @@ TcpConnection::TcpConnection(EventLoop *loop, int connfd, int connid): connfd_(c
     }
     read_buf_ = std::make_unique<Buffer>();
     send_buf_ = std::make_unique<Buffer>();
+    //context_ = std::make_unique<HttpContext>();
 }
 
 TcpConnection::~TcpConnection(){
+    //loop_->DeleteChannel(channel_.get());
     ::close(connfd_);
 }
 
@@ -150,3 +150,5 @@ void TcpConnection::WriteNonBlocking(){
         data_left -= bytes_write;
     }
 }
+
+//HttpContext *TcpConnection::context() const { return context_.get(); }

@@ -60,12 +60,12 @@ int main(int argc, char *argv[]){
         printf("error");
         exit(0);
     }
+    // 开发阶段暂时不适用异步日志
+    //asynclog = std::make_unique<AsyncLogging>();
+    //Logger::setOutput(AsyncOutputFunc);
+    //Logger::setFlush(AsyncFlushFunc);
 
-    asynclog = std::make_unique<AsyncLogging>();
-    Logger::setOutput(AsyncOutputFunc);
-    Logger::setFlush(AsyncFlushFunc);
-
-    asynclog->Start();
+    //asynclog->Start();
 
     int size = std::thread::hardware_concurrency() - 1;
     EventLoop *loop = new EventLoop();

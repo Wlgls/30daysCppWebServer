@@ -3,6 +3,7 @@
 #include "Channel.h"
 #include "common.h"
 #include "EventLoop.h"
+#include "HttpContext.h"
 #include "CurrentThread.h"
 #include <memory>
 #include <unistd.h>
@@ -21,7 +22,7 @@ TcpConnection::TcpConnection(EventLoop *loop, int connfd, int connid): connfd_(c
     }
     read_buf_ = std::make_unique<Buffer>();
     send_buf_ = std::make_unique<Buffer>();
-    //context_ = std::make_unique<HttpContext>();
+    context_ = std::make_unique<HttpContext>();
 }
 
 TcpConnection::~TcpConnection(){
@@ -152,4 +153,4 @@ void TcpConnection::WriteNonBlocking(){
     }
 }
 
-//HttpContext *TcpConnection::context() const { return context_.get(); }
+HttpContext *TcpConnection::context() const { return context_.get(); }

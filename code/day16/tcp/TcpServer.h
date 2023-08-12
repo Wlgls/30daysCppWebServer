@@ -7,11 +7,11 @@
 class EventLoop;
 class TcpConnection;
 class Acceptor;
-class ThreadPool;
+class EventLoopThreadPool;
 class InetAddress;
 class TcpServer
 {
-    public:
+public:
     DISALLOW_COPY_AND_MOVE(TcpServer);
     TcpServer(EventLoop *loop, const char *ip, const int port);
     ~TcpServer();
@@ -27,17 +27,20 @@ class TcpServer
 
     // 接收到消息做的操作。
     inline void HandleNewConnection(int fd);
-
-    private:
-        EventLoop *main_reactor_;
-        int next_conn_id_;
     
-        std::unique_ptr<Acceptor> acceptor_;
-        std::vector<std::unique_ptr<EventLoop>> sub_reactors_;
+    // 定义线程数量
+    void SetThreadNums(int thread_nums);
 
-        std::map<int, std::shared_ptr<TcpConnection>> connectionsMap_;
-        std::unique_ptr<ThreadPool> thread_pool_;
-        std::function<void(const std::shared_ptr<TcpConnection> &)> on_connect_;
-        std::function<void(const std::shared_ptr<TcpConnection> &)> on_message_;
+private:
+    EventLoop *main_reactor_;
+    int next_conn_id_;
+
+    std::unique_ptr<EventLoopThreadPool> thread_pool_;
+
+    std::unique_ptr<Acceptor> acceptor_;
+    std::map<int, std::shared_ptr<TcpConnection>> connectionsMap_;
+
+    std::function<void(const std::shared_ptr<TcpConnection> &)> on_connect_;
+    std::function<void(const std::shared_ptr<TcpConnection> &)> on_message_;
 
 };

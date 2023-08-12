@@ -12,7 +12,9 @@
 #include <arpa/inet.h>
 #include <functional>
 #include <iostream>
- 
+
+#include <unistd.h>
+
 void HttpServer::HttpDefaultCallBack(const HttpRequest& request, HttpResponse *resp){
     resp->SetStatusCode(HttpResponse::HttpStatusCode::k404NotFound);
     resp->SetStatusMessage("Not Found");
@@ -89,15 +91,27 @@ void HttpServer::onRequest(const TcpConnectionPtr &conn, const HttpRequest &requ
     LOG_INFO << "HttpServer::onMessage - Request URL : " << request.url() << " from TcpConnection"
              << "[ fd#" << conn->fd() << "-id#" << conn->id() << " ]";
     std::string connection_state = request.GetHeader("Connection");
-    bool close = (connection_state == "Close" ||
+    bool isclose = (connection_state == "Close" ||
                   (request.version() == HttpRequest::Version::kHttp10 &&
                   connection_state != "keep-alive"));
-    HttpResponse response(close);
+    HttpResponse response(isclose);
     response_callback_(request, &response);
 
-    conn->Send(response.message());
-
-    
+    // 如果是HTML，直接发送所有信息
+    if(response.bodytype() == HttpResponse::HttpBodyType::HTML_TYPE){
+        conn->Send(response.message());
+    }else{
+        // 考虑到头部字段数据量不多，直接发送完头部字段后，直接发送文件。
+        conn->Send(response.beforebody());
+        //sleep(1);
+        conn->SendFile(response.filefd(), response.GetContentLength());
+        int ret = ::close(response.filefd());
+        if(ret == -1){
+            LOG_ERROR << "Close File Error";
+        }else{
+            LOG_INFO << "Close File Ok";
+        }
+    }
 
     if(response.IsCloseConnection()){
         conn->HandleClose();

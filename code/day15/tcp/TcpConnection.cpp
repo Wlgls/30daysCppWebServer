@@ -4,6 +4,7 @@
 #include "common.h"
 #include "EventLoop.h"
 
+#include "CurrentThread.h"
 #include <memory>
 #include <unistd.h>
 #include <assert.h>
@@ -53,6 +54,7 @@ void TcpConnection::set_close_callback(std::function<void(const std::shared_ptr<
 void TcpConnection::set_message_callback(std::function<void(const std::shared_ptr<TcpConnection> &)> const &fn) { 
     on_message_ = std::move(fn);
 }
+
 
 void TcpConnection::HandleClose() {
     //std::cout << CurrentThread::tid() << " TcpConnection::HandleClose" << std::endl;

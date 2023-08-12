@@ -1,4 +1,4 @@
-TCP=$(wildcard TCP/*.cpp)
+TCP=$(wildcard tcp/*.cpp)
 
 server:
 	g++ -std=c++14 -pthread -g \

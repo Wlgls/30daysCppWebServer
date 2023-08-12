@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>文件操作</title>
     <style>
         /* 居中对齐的样式 */
@@ -15,6 +15,7 @@
 
         table {
             text-align: center;
+            margin-top: 40px;
         }
         td a {
             margin-left: 10px; /* 添加下载和删除按钮之间的间距 */
@@ -22,8 +23,15 @@
     </style>
 </head>
 <body>
+
+    
+
     <div>
         <h1>文件操作示例</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="fileInput" accept=".txt,.pdf,.doc,.docx,.jpg,.png">
+            <button type="submit">上传文件</button>
+        </form>
         <table>
             <tr>
                 <th>文件名</th>
