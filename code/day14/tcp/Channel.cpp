@@ -1,45 +1,49 @@
-
-
 #include "Channel.h"
+#include "EventLoop.h"
+#include "common.h"
 
+#include <sys/epoll.h>
 #include <unistd.h>
 #include <utility>
-#include "EventLoop.h"
-#include "Socket.h"
 
-const short Channel::READ_EVENT = 1;
-const short Channel::WRITE_EVENT = 2;
-const short Channel::ET = 4;
 
 Channel::Channel(int fd, EventLoop *loop) : fd_(fd), loop_(loop),
                                             listen_events_(0), ready_events_(0),
                                             in_epoll_(false){};
 
-Channel::~Channel() { 
-    //loop_->DeleteChannel(this); 
+Channel::~Channel() {
+    if(fd_ != -1){
+        close(fd_);
+        fd_ = -1;
+    } 
 }
 
 void Channel::HandleEvent() const{
-    if(ready_events_ & READ_EVENT){
+    if (ready_events_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
+        if (read_callback_) {
         read_callback_();
+        }
     }
-    if(ready_events_ & WRITE_EVENT){
-        write_callback_();
+
+    if (ready_events_ & EPOLLOUT) {
+        if (write_callback_) {
+            write_callback_();
+        }
     }
 }
 
 void Channel::EnableRead(){
-    listen_events_ |= READ_EVENT;
+    listen_events_ |= (EPOLLIN | EPOLLPRI);
     loop_->UpdateChannel(this);
 }
 
 void Channel::EnableWrite(){
-    listen_events_ |= WRITE_EVENT;
+    listen_events_ |= EPOLLOUT;
     loop_->UpdateChannel(this);
 }
 
 void Channel::EnableET(){
-    listen_events_ |= ET;
+    listen_events_ |= EPOLLET;
     loop_->UpdateChannel(this);
 }
 
@@ -51,16 +55,8 @@ short Channel::ready_events() const { return ready_events_; }
 bool Channel::IsInEpoll() const { return in_epoll_; }
 void Channel::SetInEpoll(bool in) { in_epoll_ = in; }
 
-void Channel::SetReadyEvents(short ev){
-    if( ev & READ_EVENT){
-        ready_events_ |= READ_EVENT;
-    }
-    if( ev & WRITE_EVENT ){
-        ready_events_ |= WRITE_EVENT;
-    }
-    if(ev & ET){
-        ready_events_ |= ET;
-    }
+void Channel::SetReadyEvents(int ev){
+    ready_events_ = ev;
 }
 
 void Channel::set_read_callback(std::function<void()> const &callback) { read_callback_ = std::move(callback); }

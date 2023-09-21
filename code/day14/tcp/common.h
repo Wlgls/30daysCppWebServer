@@ -27,13 +27,3 @@ class ThreadPool;
 // #define ASSERT(expr, message) assert((expr) && (message))
 
 // #define UNREACHABLE(message) throw std::logic_error(message)
-
-enum RC {
-  RC_UNDEFINED,
-  RC_SUCCESS,
-  RC_SOCKET_ERROR,
-  RC_POLLER_ERROR,
-  RC_CONNECTION_ERROR,
-  RC_ACCEPTOR_ERROR,
-  RC_UNIMPLEMENTED
-};

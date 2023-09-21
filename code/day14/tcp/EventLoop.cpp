@@ -2,7 +2,6 @@
 #include <vector>
 #include "Channel.h"
 #include "Epoller.h"
-#include "common.h"
 
 EventLoop::EventLoop() { poller_ = std::make_unique<Epoller>(); }
 

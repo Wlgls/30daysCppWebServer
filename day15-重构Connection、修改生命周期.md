@@ -4,7 +4,7 @@
 
 * 本章内容偏多，主要是为了理清程序运行的逻辑时，对代码进行了大幅度的更改。
 
-在昨天的重构中，将每个类独属的资源使用`unique_ptr`进行了包装。但是对于`TcpConnection`这个类，其生命周期模糊，使用`unique_ptr`很容易导致内存泄漏。这是因为我们的对于`TcpConnection`是被动关闭，当我们`channel`在`handleEvent`时，发现客户端传入了关闭连接的信息后，直接对`onClose`进行了调用。因此如果使用`unqiue_ptr`时，我们在调用`onclose`时已经销毁了`tcpconnection`，而对应的`channel`也会被移除，但是此时的`HandleEvent`并没有结束，因此存在了内存泄漏。
+在昨天的重构中，将每个类独属的资源使用`unique_ptr`进行了包装。但是对于`TcpConnection`这个类，其生命周期模糊，使用`unique_ptr`很容易导致内存泄漏。这是因为我们的对于`TcpConnection`是被动关闭，当我们`channel`在`handleEvent`时，发现客户端传入了关闭连接的信息后，直接对`onClose`进行了调用。因此如果使用`unqiue_ptr`时，我们在调用`onclose`时将相应的`tcpconnection`释放掉，而对应的`channel`也会被移除，但是此时的`HandleEvent`并没有结束，因此存在了内存泄漏。
 
 * 针对，这个问题，总要从三个步骤进行。
   1. 使用`shared_ptr`智能指针管理`TcpConnection`。
@@ -274,6 +274,5 @@ void EventLoop::HandleRead(){
     assert(read_size == sizeof(read_one_byte));
     return;
 }
-
 ```
 
