@@ -4,7 +4,7 @@
 
 * 本章内容偏多，主要是为了理清程序运行的逻辑时，对代码进行了大幅度的更改。
 
-在昨天的重构中，将每个类独属的资源使用`unique_ptr`进行了包装。但是对于`TcpConnection`这个类，其生命周期模糊，使用`unique_ptr`很容易导致内存泄漏。这是因为我们的对于`TcpConnection`是被动关闭，当我们`channel`在`handleEvent`时，发现客户端传入了关闭连接的信息后，直接对`onClose`进行了调用。因此如果使用`unqiue_ptr`时，我们在调用`onclose`时将相应的`tcpconnection`释放掉，而对应的`channel`也会被移除，但是此时的`HandleEvent`并没有结束，因此存在了内存泄漏。
+在昨天的重构中，将每个类独属的资源使用`unique_ptr`进行了包装。但是对于`TcpConnection`这个类，其生命周期模糊，使用`unique_ptr`很容易导致内存泄漏。这是因为我们的对于`TcpConnection`是被动关闭，当我们`channel`在`handleEvent`时，发现客户端传入了关闭连接的信息后，直接对`onClose`进行了调用。因此如果使用`unqiue_ptr`时，我们在调用`onclose`时已经销毁了`tcpconnection`，而对应的`channel`也会被移除，但是此时的`HandleEvent`并没有结束，因此存在了内存泄漏。
 
 * 针对，这个问题，总要从三个步骤进行。
   1. 使用`shared_ptr`智能指针管理`TcpConnection`。
@@ -67,7 +67,7 @@ void Channel::HandleEventWithGuard() const{
 }
 ```
 
-当我们建立`TcpConnection`时，会首先将其绑定在`Channel`的`tie_`上，随后，在令其进行监听读操作，这样就可以保证`Channel`在`HandleEvent`时，会增加`TcpConnection`的引用计数。
+当我们建立`TcpConnection`时，会首先将其绑定在`Channel`的`tie_`上，由于`shared_from_this`无法在构造函数处调用，因此将部分操作进行分离，并保证在构造函数执行结束后调用该函数。随后，在令其进行监听读操作，这样就可以保证`Channel`在`HandleEvent`时，会增加`TcpConnection`的引用计数。
 ```c++
 // TcpConnection.cpp
 void TcpConnection::ConnectionEstablished(){
@@ -138,7 +138,15 @@ void EventLoop::DoToDoList(){
 在`HandleClose`时，会将`TcpConnection`的`ConnectionDestructor`加入到`to_do_list_`中.
 ```cpp
 // TcpServer.cpp
-inline void TcpServer::HandleCloseInLoop(const std::shared_ptr<TcpConnection> & conn){
+
+void TcpConnection::ConnectionDestructor(){
+    //std::cout << CurrentThread::tid() << " TcpConnection::ConnectionDestructor" << std::endl;
+    // 将该操作从析构处，移植该处，增加性能，因为在析构前，当前`TcpConnection`已经相当于关闭了。
+    // 已经可以将其从loop处离开。
+    loop_->DeleteChannel(channel_.get());
+}
+
+inline void TcpServer::HandleClose(const std::shared_ptr<TcpConnection> & conn){
 
     auto it = connectionsMap_.find(conn->fd());
     assert(it != connectionsMap_.end());
@@ -208,6 +216,7 @@ bool EventLoop::IsInLoopThread(){
 // TcpServer.cpp
 inline void TcpServer::HandleClose(const std::shared_ptr<TcpConnection> & conn){
     std::cout <<  CurrentThread::tid() << " TcpServer::HandleClose"  << std::endl;
+    // 由main_reactor_来执行`HandleCloseInLoop`函数，来保证线程安全
     main_reactor_->RunOneFunc(std::bind(&TcpServer::HandleCloseInLoop, this, conn));
 }
 
@@ -231,9 +240,13 @@ void EventLoop::RunOneFunc(std::function<void()> cb){
 }
 ```
 
+### eventfd异步唤醒机制
+
 但是上述仍然存在一个比较严重的问题，由于`to_do_list_`只有在`HandleEvent`之后进行处理，如果当前`Epoller`监听的没有事件发生，那么就会堵塞在`epoll_wait`处，这对于服务器的性能影响是灾难性的。为此，我们希望在将任务加入`to_do_list_`时，唤醒相应的`Epoller`。
 
 为了实现该操作，在`EventLoop`处，增加了一个`wakeup_channel_`，并对其进行监听读操作。当我们为`to_do_list_`添加任务时，如果如果不是当前线程，就随便往`wakeup_channel_`对应的`fd`写点东西，此时，读事件会监听到，就不会再阻塞在epoll_wait中了，并可以迅速执行`HandleCloseInLoop`操作，释放`TcpConnection`。
+
+muduo中主要是通过`eventfd`来实现的。
 
 ```cpp
 // EventLoop.cpp
@@ -274,5 +287,6 @@ void EventLoop::HandleRead(){
     assert(read_size == sizeof(read_one_byte));
     return;
 }
+
 ```
 
