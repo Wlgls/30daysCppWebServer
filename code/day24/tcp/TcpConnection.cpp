@@ -5,7 +5,6 @@
 #include "EventLoop.h"
 #include "HttpContext.h"
 #include "TimeStamp.h"
-#include "Logging.h"
 #include <thread>
 #include <memory>
 #include <unistd.h>
@@ -82,31 +81,29 @@ EventLoop *TcpConnection::loop() const { return loop_; }
 int TcpConnection::fd() const { return connfd_; }
 int TcpConnection::id() const { return connid_; }
 TcpConnection::ConnectionState TcpConnection::state() const { return state_; }
+void TcpConnection::set_send_buf(const char *str) { send_buf_->set_buf(str); }
 Buffer *TcpConnection::read_buf(){ return read_buf_.get(); }
 Buffer *TcpConnection::send_buf() { return send_buf_.get(); }
 
 void TcpConnection::Send(const std::string &msg){
-    Send(msg.data(), static_cast<int>(msg.size()));
+    set_send_buf(msg.c_str());
+    Write();
 }
 
 void TcpConnection::Send(const char *msg){
-    Send(msg, static_cast<int>(strlen(msg)));
-} 
-
-void TcpConnection::Send(const char *msg, int len){
-    send_buf_->Append(msg, len);
+    set_send_buf(msg);
     Write();
 }
 
 void TcpConnection::Read()
 {
-    read_buf_->RetrieveAll();
+    read_buf_->Clear();
     ReadNonBlocking();
 }
 
 void TcpConnection::Write(){
     WriteNonBlocking();
-    send_buf_->RetrieveAll();
+    send_buf_->Clear();
 }
 
 
@@ -134,9 +131,9 @@ void TcpConnection::ReadNonBlocking(){
 }
 
 void TcpConnection::WriteNonBlocking(){
-    char buf[send_buf_->readablebytes()];
-    memcpy(buf, send_buf_->beginread(), send_buf_->readablebytes());
-    int data_size = send_buf_->readablebytes();
+    char buf[send_buf_->Size()];
+    memcpy(buf, send_buf_->c_str(), send_buf_->Size());
+    int data_size = send_buf_->Size();
     int data_left = data_size;
 
     while(data_left > 0){

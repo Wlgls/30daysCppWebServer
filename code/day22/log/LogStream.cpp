@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include<stdio.h>
 #include "LogStream.h"
 
 FixedBuffer::FixedBuffer():cur_(data_){};

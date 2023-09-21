@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>文件操作</title>
+    <style>
+        /* 居中对齐的样式 */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 80vh;
+            margin: 0;
+        }
+
+        table {
+            text-align: center;
+            margin-top: 40px;
+        }
+        td a {
+            margin-left: 10px; /* 添加下载和删除按钮之间的间距 */
+        }
+    </style>
+</head>
+<body>
+
+    
+
+    <div>
+        <h1>文件操作示例</h1>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" id="fileInput" accept=".txt,.pdf,.doc,.docx,.jpg,.png">
+            <button type="submit">上传文件</button>
+        </form>
+        <table>
+            <tr>
+                <th>文件名</th>
+                <th>操作</th>
+            </tr>
+            <!--filelist-->
+            <!--
+            <tr> 示例
+                <td>a.txt</td>
+                <td>
+                    <a href="/download/a.txt">下载</a>
+                    <a href="/download/a.txt">删除</a>
+                </td>
+            </tr>
+            -->
+            
+        </table>
+    </div>
+</body>
+</html>

@@ -42,11 +42,11 @@ public:
 
     void Read(); // 读操作
     void Write(); // 写操作
-
-    void Send(const std::string &msg);   // 输出信息
+    
+    void Send(const std::string &msg); // 输出信息
     void Send(const char *msg, int len); // 输出信息
     void Send(const char *msg);
-    void SendFile(int filefd, int size);
+
 
     void HandleMessage(); // 当接收到信息时，进行回调
     void HandleWrite();   // 写操作
@@ -63,6 +63,7 @@ public:
 
     TimeStamp timestamp() const;
     void UpdateTimeStamp(TimeStamp now);
+
 
 private:
     // 该连接绑定的Socket
@@ -85,7 +86,6 @@ private:
 
     void ReadNonBlocking();
     void WriteNonBlocking();
-
 
     std::unique_ptr<HttpContext> context_;
 

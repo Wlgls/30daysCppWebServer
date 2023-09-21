@@ -4,7 +4,6 @@
 #include "common.h"
 #include "EventLoop.h"
 #include "HttpContext.h"
-#include "TimeStamp.h"
 #include "CurrentThread.h"
 #include <memory>
 #include <unistd.h>
@@ -154,8 +153,3 @@ void TcpConnection::WriteNonBlocking(){
 }
 
 HttpContext *TcpConnection::context() const { return context_.get(); }
-
-TimeStamp TcpConnection::timestamp() const { return timestamp_; }
-void TcpConnection::UpdateTimeStamp(TimeStamp now){
-    timestamp_ = now;
-}

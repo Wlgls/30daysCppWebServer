@@ -20,7 +20,6 @@ bool HttpContext::GetCompleteRequest(){
 
 void HttpContext::ResetContextStatus(){
     state_ = HttpRequestParaseState::START;
-    request_.reset(new HttpRequest());
 }
 
 bool HttpContext::ParaseRequest(const std::string& msg){
@@ -252,12 +251,9 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
             case HttpRequestParaseState::BODY:{
                 
                 int bodylength = size - (end - begin);
+                //std::cout << "bodylength:" << bodylength << std::endl;
                 request_->SetBody(std::string(start, start + bodylength));
-
-                if (bodylength >= atoi(request_->GetHeader("Content-Length").c_str()))
-                {
-                    state_ = HttpRequestParaseState::COMPLETE;
-                }
+                state_ = HttpRequestParaseState::COMPLETE;
                 break;
             }
 
@@ -268,7 +264,8 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
             
             end++;
     }
-    return state_ == HttpRequestParaseState::COMPLETE || state_ == HttpRequestParaseState::BODY;
+    
+    return state_ == HttpRequestParaseState::COMPLETE;
 }
 
 HttpRequest * HttpContext::request(){

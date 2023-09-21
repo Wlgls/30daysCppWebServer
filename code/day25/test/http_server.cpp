@@ -8,7 +8,6 @@
 #include <string>
 #include <memory>
 
-
 const std::string html = " <font color=\"red\">This is html!</font> ";
 void HttpResponseCallback(const HttpRequest &request, HttpResponse *response)
 {

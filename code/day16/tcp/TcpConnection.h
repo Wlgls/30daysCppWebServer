@@ -5,7 +5,6 @@
 #include <memory>
 #include <string>
 class Buffer;
-class HttpContext;
 class TcpConnection : public std::enable_shared_from_this<TcpConnection>
 {
 public:
@@ -46,7 +45,6 @@ public:
     void Send(const char *msg, int len); // 输出信息
     void Send(const char *msg);
 
-
     void HandleMessage(); // 当接收到信息时，进行回调
 
     // 当TcpConnection发起关闭请求时，进行回调，释放相应的socket.
@@ -57,8 +55,6 @@ public:
     EventLoop *loop() const;
     int fd() const;
     int id() const;
-    //HttpContext *context() const;
-
 
 private:
     // 该连接绑定的Socket
@@ -82,5 +78,4 @@ private:
     void ReadNonBlocking();
     void WriteNonBlocking();
 
-    //std::unique_ptr<HttpContext> context_;
 };

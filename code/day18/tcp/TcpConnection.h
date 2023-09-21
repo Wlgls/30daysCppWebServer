@@ -51,11 +51,12 @@ public:
 
     // 当TcpConnection发起关闭请求时，进行回调，释放相应的socket.
     void HandleClose(); 
+
     ConnectionState state() const;
     EventLoop *loop() const;
     int fd() const;
     int id() const;
-    HttpContext *context() const;
+    //HttpContext *context() const;
 
 
 private:
@@ -80,5 +81,5 @@ private:
     void ReadNonBlocking();
     void WriteNonBlocking();
 
-    std::unique_ptr<HttpContext> context_;
+    //std::unique_ptr<HttpContext> context_;
 };

@@ -36,7 +36,6 @@ public:
     void onMessage(const TcpConnectionPtr &conn);
     void onRequest(const TcpConnectionPtr &conn, const HttpRequest &request);
 
-
     void SetThreadNums(int thread_nums);
 
     // 不控制conn的生命周期，依然由正常的方式进行释放。
@@ -54,3 +53,5 @@ private:
     bool auto_close_conn_;
     HttpResponseCallback response_callback_;
 };
+
+

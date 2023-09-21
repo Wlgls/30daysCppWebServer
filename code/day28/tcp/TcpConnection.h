@@ -91,6 +91,4 @@ private:
 
     // 需要频繁赋值，使用普通成员变量。
     TimeStamp timestamp_;
-
-    // 主要是在处理文件时，需要需要保存boundary.以发现下一个报文中的信息。
 };

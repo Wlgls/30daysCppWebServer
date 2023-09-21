@@ -102,7 +102,6 @@ void defaultOutput(const char* msg, int len){
 }
 
 void defaultFlush(){
-    // 强制刷新输出流缓冲区
     fflush(stdout);    // 默认flush到stdout
 }
 

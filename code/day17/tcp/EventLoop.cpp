@@ -2,12 +2,12 @@
 
 #include "Channel.h"
 #include "Epoller.h"
-
+#include "CurrentThread.h"
 #include <memory>
 #include <vector>
 #include <stdio.h>
 #include <unistd.h>
-#include "CurrentThread.h"
+#include <thread>
 #include <sys/eventfd.h>
 #include <assert.h>
 

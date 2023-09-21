@@ -10,7 +10,6 @@
 #include <sys/socket.h>
 #include <assert.h>
 #include <cstring>
-#include <thread>
 #include <fcntl.h>
 #include <assert.h>
 #include <iostream>

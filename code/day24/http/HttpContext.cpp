@@ -4,7 +4,6 @@
 #include <string>
 #include <algorithm>
 #include <iostream>
-#include <cstring>
 
 HttpContext::HttpContext() :state_(HttpRequestParaseState::START){
     request_ = std::make_unique<HttpRequest>();
@@ -20,13 +19,6 @@ bool HttpContext::GetCompleteRequest(){
 
 void HttpContext::ResetContextStatus(){
     state_ = HttpRequestParaseState::START;
-}
-
-bool HttpContext::ParaseRequest(const std::string& msg){
-    return ParaseRequest(msg.data(), static_cast<int>(msg.size()));
-}
-bool HttpContext::ParaseRequest(const char *begin){
-    return ParaseRequest(begin, static_cast<int>(strlen(begin)));
 }
 
 bool HttpContext::ParaseRequest(const char *begin, int size){

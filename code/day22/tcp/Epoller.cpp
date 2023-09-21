@@ -1,6 +1,6 @@
 #include "Epoller.h"
 #include "Channel.h"
-#include "Logging.h"
+
 #include <sys/epoll.h>
 #include <unistd.h>
 #include <string.h>
@@ -42,12 +42,12 @@ void Epoller::UpdateChannel(Channel *ch) const{
     ev.events = ch->listen_events();
     if (!ch->IsInEpoll()){
         if(epoll_ctl(fd_, EPOLL_CTL_ADD, sockfd, &ev) == -1){
-            LOG_ERROR << "Epoller::UpdateChannel epoll_ctl_add failed";
+            std::cout << "Epoller::UpdateChannel epoll_ctl_add failed" << std::endl;
         }
         ch->SetInEpoll(true);
     }else{
         if(epoll_ctl(fd_, EPOLL_CTL_MOD, sockfd, &ev) == -1){
-            LOG_ERROR << "Epoller::UpdateChannel epoll_ctl_mod failed";
+            std::cout << "Epoller::UpdateChannel epoll_ctl_mod failed" << std::endl;
         }
     }
 }
@@ -55,7 +55,7 @@ void Epoller::UpdateChannel(Channel *ch) const{
 void Epoller::DeleteChannel(Channel *ch) const{
     int sockfd = ch->fd();
     if (epoll_ctl(fd_, EPOLL_CTL_DEL, sockfd, nullptr) == -1){
-        LOG_ERROR << "Epoller::UpdateChannel epoll_ctl_del failed";
+        std::cout << "Epoller::UpdateChannel epoll_ctl_del failed" << std::endl;
     }
     ch->SetInEpoll(false);
 }

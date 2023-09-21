@@ -1,7 +1,7 @@
 #include "Acceptor.h"
 #include "Channel.h"
 #include "EventLoop.h"
-#include "Logging.h"
+
 #include <string>
 #include <unistd.h>
 #include <fcntl.h>
@@ -35,7 +35,7 @@ void Acceptor::Create(){
     assert(listenfd_ == -1);
     listenfd_ = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, IPPROTO_TCP);
     if(listenfd_ == -1){
-        LOG_ERROR << "Failed to create socket";
+        std::cout << "Failed to create socket" << std::endl;
     }
 }
 
@@ -46,14 +46,14 @@ void Acceptor::Bind(const char *ip, const int port){
     addr.sin_addr.s_addr = inet_addr(ip);
     addr.sin_port = htons(port);
     if(::bind(listenfd_, (struct sockaddr *)&addr, sizeof(addr))==-1){
-        LOG_ERROR << "Failed to Bind ["  << ip << ":" << port << "]";
+        std::cout << "Failed to Bind : "  << ip << ":" << port << std::endl;
     }
 }
 
 void Acceptor::Listen(){
     assert(listenfd_ != -1);
     if(::listen(listenfd_, SOMAXCONN) == -1){
-        LOG_ERROR << "Failed to Listen";
+        std::cout << "Failed to Listen" << std::endl;
     }
 }
 
@@ -65,7 +65,7 @@ void Acceptor::AcceptConnection(){
     int clnt_fd = ::accept4(listenfd_, (struct sockaddr *)&client, &client_addrlength, SOCK_NONBLOCK | SOCK_CLOEXEC);
     
     if (clnt_fd == -1){
-        LOG_ERROR << "Failed to Accept";
+        std::cout << "Failed to Accept" << std::endl;
     }
     if(new_connection_callback_){
         new_connection_callback_(clnt_fd);

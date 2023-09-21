@@ -8,7 +8,6 @@
 #include "Buffer.h"
 #include "EventLoop.h"
 #include "CurrentThread.h"
-#include "TimeStamp.h"
 #include <arpa/inet.h>
 #include <functional>
 #include <iostream>
@@ -28,8 +27,6 @@ HttpServer::HttpServer(EventLoop * loop, const char *ip, const int port) : loop_
         std::bind(&HttpServer::onMessage, this, std::placeholders::_1)
     );
     SetHttpCallback(std::bind(&HttpServer::HttpDefaultCallBack, this, std::placeholders::_1, std::placeholders::_2));
-
-    loop_->RunEvery(3.0, std::bind(&HttpServer::TestTimer_IntervalEvery3Seconds, this));
 };
 
 HttpServer::~HttpServer(){

@@ -23,9 +23,9 @@ class HttpResponse{
 
         enum HttpBodyType
         {
-            HTML_TYPE,
             FILE_TYPE,
-        };
+            HTML_TYPE,
+        }
         HttpResponse(bool close_connection);
         ~HttpResponse();
 
@@ -33,21 +33,19 @@ class HttpResponse{
         void SetStatusMessage(const std::string &status_message);
         void SetCloseConnection(bool close_connection);
 
-        void SetContentType(const std::string &content_type);
-        void SetContentLength(const int &len);
-        int GetContentLength();
+        void SetContentType(const std::string &content_type); 
+        void SetContentLen()
         void AddHeader(const std::string &key, const std::string &value); // 设置回应头
+
         void SetBody(const std::string &body);
 
         std::string message(); // 将信息加入到buffer中。
-        std::string beforebody(); // 先发送beforebody;
 
         bool IsCloseConnection();
 
-        int filefd() const;
-        HttpBodyType bodytype() const;
         void SetFileFd(int filefd);
         void SetBodyType(HttpBodyType bodytype);
+        HttpBodyType bodytype();
 
     private:
         // static const std::string server_name_;
@@ -56,10 +54,10 @@ class HttpResponse{
 
         HttpStatusCode status_code_;
         std::string status_message_;
-        int content_length_;
         std::string body_;
         bool close_connection_;
 
+        // 针对文件的操作
         int filefd_;
         HttpBodyType body_type_;
 };

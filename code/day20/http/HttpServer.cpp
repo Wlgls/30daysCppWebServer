@@ -19,7 +19,7 @@ void HttpServer::HttpDefaultCallBack(const HttpRequest& request, HttpResponse *r
     resp->SetCloseConnection(true);
 }
 
-HttpServer::HttpServer(EventLoop * loop, const char *ip, const int port, bool auto_close_conn) : loop_(loop), auto_close_conn_(auto_close_conn) {
+HttpServer::HttpServer(EventLoop * loop, const char *ip, const int port) : loop_(loop) {
     server_ = std::make_unique<TcpServer>(loop_, ip, port);
     server_->set_connection_callback(
         std::bind(&HttpServer::onConnection, this, std::placeholders::_1));
@@ -29,7 +29,7 @@ HttpServer::HttpServer(EventLoop * loop, const char *ip, const int port, bool au
     );
     SetHttpCallback(std::bind(&HttpServer::HttpDefaultCallBack, this, std::placeholders::_1, std::placeholders::_2));
 
-    //loop_->RunEvery(3.0, std::bind(&HttpServer::TestTimer_IntervalEvery3Seconds, this));
+    loop_->RunEvery(3.0, std::bind(&HttpServer::TestTimer_IntervalEvery3Seconds, this));
 };
 
 HttpServer::~HttpServer(){
@@ -46,19 +46,11 @@ void HttpServer::onConnection(const TcpConnectionPtr &conn){
               << "[fd#" << clnt_fd << "]"
               << " from " << inet_ntoa(peeraddr.sin_addr) << ":" << ntohs(peeraddr.sin_port)
               << std::endl;
-
-    if(auto_close_conn_){
-        loop_->RunAfter(AUTOCLOSETIMEOUT, std::move(std::bind(&HttpServer::ActiveCloseConn, this, std::weak_ptr<TcpConnection>(conn))));
-    }
 }
 
 void HttpServer::onMessage(const TcpConnectionPtr &conn){
     if (conn->state() == TcpConnection::ConnectionState::Connected)
     {
-        // 保存最近一次活跃的时间
-        if(auto_close_conn_)
-            conn->UpdateTimeStamp(TimeStamp::Now());
-
         HttpContext *context = conn->context();
         if (!context->ParaseRequest(conn->read_buf()->c_str(), conn->read_buf()->Size()))
         {
@@ -98,15 +90,3 @@ void HttpServer::start(){
 }
 
 void HttpServer::SetThreadNums(int thread_nums) { server_->SetThreadNums(thread_nums); }
-
-void HttpServer::ActiveCloseConn(std::weak_ptr<TcpConnection> & connection){
-    TcpConnectionPtr conn = connection.lock(); //防止conn已经被释放
-    if (conn)
-    {
-        if(TimeStamp::AddTime(conn->timestamp(), AUTOCLOSETIMEOUT) < TimeStamp::Now()){
-            conn->HandleClose();
-        }else{
-            loop_->RunAfter(AUTOCLOSETIMEOUT, std::move(std::bind(&HttpServer::ActiveCloseConn, this, connection)));
-        }
-    }
-}

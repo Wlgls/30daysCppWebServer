@@ -43,23 +43,16 @@ std::string HttpResponse::message(){
     if(close_connection_){
         message += ("Connection: close\r\n");
     }else{
+        message += ("Content-Length: " + std::to_string(body_.size()) + "\r\n");
         message += ("Connection: Keep-Alive\r\n");
     }
-    if(body){
-        message += ("Content-Length: " + std::to_string(body_.size()) + "\r\n");
-    }
-    
+
     for (const auto&header : headers_){
         message += (header.first + ": " + header.second + "\r\n");
     }
 
-    message += "Cache-Control: no-store, no-cache, must-revalidate\r\n";
     message += "\r\n";
     message += body_;
 
     return message;
 }
-
-void HttpResponse::SetFileFd(int filefd){ filefd_ = filefd; }
-void HttpResponse::SetBodyType(HttpBodyType bodytype) { body_type_ = bodytype; }
-HttpResponse::HttpBodyType HttpResponse::bodytype() { return body_type_; }

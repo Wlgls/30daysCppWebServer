@@ -51,8 +51,6 @@ public:
 
     // 当TcpConnection发起关闭请求时，进行回调，释放相应的socket.
     void HandleClose(); 
-
-
     ConnectionState state() const;
     EventLoop *loop() const;
     int fd() const;

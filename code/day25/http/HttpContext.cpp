@@ -214,9 +214,13 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
                 break;
             }
             case HttpRequestParaseState::CR_LF:{
+                //std::cout << "111" << ch << std::endl;
                 if(ch == CR){
                     // 说明遇到了空行，大概率时结束了
                     state_ = HttpRequestParaseState::CR_LF_CR;
+                    //start  = end + 1;
+                    //std::cout << "a:" << (*start == '\n') << std::endl;
+                    //std::cout << "b:" << (*end == '\r') << std::endl;
                 }else if(isblank(ch)){
                     state_ = HttpRequestParaseState::kINVALID;
                 }else{
@@ -227,6 +231,8 @@ bool HttpContext::ParaseRequest(const char *begin, int size){
             case HttpRequestParaseState::CR_LF_CR:{ 
                 // 判断是否需要解析请求体
                 //
+                //std::cout << "c:" << (ch == '\n') << std::endl;
+                //std::cout << "size:" << end-begin << std::endl;
                 if(ch == LF){
                     // 这就意味着遇到了空行，要进行解析请求体了
                     if(request_-> headers().count("Content-Lenght")){

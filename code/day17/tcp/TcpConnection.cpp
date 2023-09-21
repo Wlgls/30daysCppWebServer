@@ -75,7 +75,6 @@ void TcpConnection::HandleMessage(){
     }
 }
 
-
 EventLoop *TcpConnection::loop() const { return loop_; }
 int TcpConnection::fd() const { return connfd_; }
 int TcpConnection::id() const { return connid_; }

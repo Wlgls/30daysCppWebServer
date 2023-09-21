@@ -4,6 +4,7 @@
 #include "TcpServer.h"
 #include "Buffer.h"
 #include "CurrentThread.h"
+#include <thread>
 #include <iostream>
 #include <functional>
 #include <arpa/inet.h>

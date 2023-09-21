@@ -12,7 +12,6 @@
 #include <assert.h>
 #include <iostream>
 #include <sys/socket.h>
-#include <sys/sendfile.h>
 
 
 TcpConnection::TcpConnection(EventLoop *loop, int connfd, int connid): connfd_(connfd), connid_(connid), loop_(loop){
@@ -172,6 +171,7 @@ void TcpConnection::ReadNonBlocking(){
 }
 
 void TcpConnection::WriteNonBlocking(){
+
     int remaining = send_buf_->readablebytes();
     int send_size = static_cast<int>(write(connfd_, send_buf_->Peek(), remaining));
     if((send_size == -1) && 
@@ -193,25 +193,4 @@ HttpContext *TcpConnection::context() const { return context_.get(); }
 TimeStamp TcpConnection::timestamp() const { return timestamp_; }
 void TcpConnection::UpdateTimeStamp(TimeStamp now){
     timestamp_ = now;
-}
-
-void TcpConnection::SendFile(int filefd, int size){
-    ssize_t send_size = 0;
-    ssize_t data_size = static_cast<ssize_t>(size);
-    // 一次性把文件写完，虽然肯定不行。
-    while(send_size < data_size){
-
-        ssize_t bytes_write = sendfile(connfd_, filefd, (off_t *)&send_size, data_size - send_size);
-
-        if (bytes_write == -1)
-        {
-            if ((errno == EAGAIN) || (errno == EWOULDBLOCK)){
-                continue;
-            }else{
-                //continue;
-                break;
-            }
-        }
-        send_size += bytes_write;
-    }
 }
